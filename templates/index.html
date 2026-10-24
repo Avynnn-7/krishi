@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Jal-Khadd · Field companion{% endblock %}
+{% block content %}
+<section class="hero container">
+  <div class="hero-copy">
+    <div class="eyebrow"><span class="status-dot"></span>{{ t('ROOTED IN YOUR FIELD', 'आपके खेत से जुड़ा') }}</div>
+    <h1>{{ t('Every field is different.', 'हर खेत अलग है।') }}<br><em>{{ t('Your plan should be, too.', 'खाद की योजना भी।') }}</em></h1>
+    <p class="lead">{{ t('Bring your crop, field size and budget together. Explore a practical fertilizer shopping list and a water-aware calendar — with the science, assumptions and limits in plain sight.', 'फसल, खेत का क्षेत्र और बजट के आधार पर खाद की खरीदारी सूची और पानी के समय से जुड़ा कैलेंडर देखें। मान्यताएँ और सीमाएँ साफ दिखाई जाती हैं।') }}</p>
+    <div class="actions"><a class="button" href="{{ url_for('advisory') }}">{{ _('Build a field plan') }} <span>↗</span></a><a class="button secondary" href="{{ url_for('bot_demo') }}">{{ t('Try the Hindi assistant', 'हिंदी सहायक आज़माएँ') }}</a></div>
+    <div class="hero-facts"><span><strong>04</strong>{{ t('crop pathways', 'फसल विकल्प') }}</span><span><strong>06</strong>{{ t('Haridwar blocks', 'हरिद्वार ब्लॉक') }}</span><span><strong>₹</strong>{{ t('your budget, respected', 'आपके बजट के भीतर') }}</span></div>
+  </div>
+  <div class="field-card">
+    <div class="field-card-top"><span class="eyebrow">{{ t('THE FIELD NOTEBOOK', 'खेत की नोटबुक') }}</span><span class="pill">{{ t('Prototype', 'प्रोटोटाइप') }}</span></div>
+    <div class="field-illustration" aria-hidden="true"><div class="sun"></div><div class="hill hill-back"></div><div class="hill hill-front"></div><div class="crop-lines"></div><div class="water-line"></div><span class="field-caption">29°51′ N · ROORKEE BELT</span></div>
+    <div class="notebook-row"><span class="number-tag">01</span><div><strong>{{ t('Know what you are buying', 'खरीद को समझें') }}</strong><p>{{ t('Whole bags. Clear costs. Visible leftovers.', 'पूरी बोरियाँ, साफ लागत, बची मात्रा का हिसाब।') }}</p></div></div>
+    <div class="notebook-row"><span class="number-tag blue">02</span><div><strong>{{ t('Plan around water, not habit', 'पानी के समय से योजना बनाएँ') }}</strong><p>{{ t('Crop stages + reported irrigation + rain checks.', 'फसल अवस्था + पानी का समय + वर्षा जाँच।') }}</p></div></div>
+    <div class="notebook-foot">{{ t('An informed starting point. A scientist-reviewed final decision.', 'यह शुरुआत है। अंतिम निर्णय विशेषज्ञ की जाँच के बाद।') }}</div>
+  </div>
+</section>
+<section class="trust-strip"><div class="container"><strong>{{ t('Useful by design. Honest about data.', 'काम की जानकारी। डेटा के बारे में ईमानदारी।') }}</strong><span>{{ t('No invented soil tests', 'कोई काल्पनिक मिट्टी जाँच नहीं') }}</span><span>{{ t('No guaranteed yield claims', 'उपज की गारंटी का दावा नहीं') }}</span><span>{{ t('Hindi + English', 'हिंदी + अंग्रेज़ी') }}</span></div></section>
+<section class="container section">
+  <div class="section-heading"><div><div class="eyebrow">{{ t('FROM NUMBERS TO NEXT STEPS', 'आँकड़ों से आगे की योजना') }}</div><h2>{{ t('One field. A connected plan.', 'एक खेत। जुड़ी हुई योजना।') }}</h2></div><a class="text-link" href="{{ url_for('about') }}">{{ t('See how it works', 'कार्यप्रणाली देखें') }} →</a></div>
+  <div class="feature-grid">
+    <article class="feature-card"><span class="feature-icon">₹</span><h3>{{ t('Make the budget count', 'बजट का सही उपयोग') }}</h3><p>{{ t('Integer optimization balances nutrient coverage before minimizing cost. Unmet needs stay visible.', 'अनुकूलन में पहले पोषक पूर्ति, फिर कम लागत। बची कमी साफ दिखाई जाती है।') }}</p></article>
+    <article class="feature-card"><span class="feature-icon blue">≈</span><h3>{{ t('Keep water in the picture', 'पानी के समय का ध्यान') }}</h3><p>{{ t('Explore crop-stage timing, rainfall risk and reported canal turns. Missing forecasts never mean “safe”.', 'फसल अवस्था, वर्षा जोखिम और बताए गए नहर समय देखें। मौसम न मिलने का अर्थ सुरक्षित नहीं।') }}</p></article>
+    <article class="feature-card"><span class="feature-icon amber">↗</span><h3>{{ t('Look beyond monoculture', 'एक फसल से आगे सोचें') }}</h3><p>{{ t('Compare sugarcane with a moong intercrop using editable costs, prices and trade-offs — not promises.', 'गन्ने और मूंग की अंतरफसल के लागत, भाव और लाभ-हानि की तुलना करें — बिना गारंटी।') }}</p></article>
+  </div>
+</section>
+<section class="container"><div class="outreach-banner"><div class="eyebrow">{{ t('BUILT FOR THE LAST MILE', 'खेत तक पहुँचने के लिए') }}</div><h2>{{ t('Advice that travels beyond a screen.', 'जानकारी जो खेत तक पहुँचे।') }}</h2><p>{{ t('Print a Hindi card, save a calendar, or test the same workflow in a simple conversation. Designed for extension workers and younger farmers to use together.', 'हिंदी कार्ड छापें, कैलेंडर सहेजें या बातचीत से यही प्रक्रिया आज़माएँ। कृषि कार्यकर्ता और युवा किसान साथ उपयोग कर सकते हैं।') }}</p><a class="button light" href="{{ url_for('bot_demo') }}">{{ t('Open the field assistant', 'खेत सहायक खोलें') }} →</a></div></section>
+{% endblock %}

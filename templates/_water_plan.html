@@ -1,0 +1,37 @@
+{% set first = (water.events|selectattr('das', 'ge', 0)|list or water.events)|first %}
+{% if water.realtime %}
+{% set rt = water.realtime %}
+<div class="notice {{ 'danger' if rt.action == 'wait_rain' else '' }}" data-realtime-water>
+  <strong>🌦️ {{ t('Real-time 7-day meteorological irrigation check', 'लाइव 7-दिन मौसम व सिंचाई जाँच') }} ({{ 'Open-Meteo Live' if rt.live else t('Climate baseline', 'जलवायु औसत') }})</strong>
+  <p>{{ rt['advice_' ~ locale] }}</p>
+  <small>{{ t('7-day ET₀', '7-दिन ET₀') }}: {{ rt.et0_7d_mm }} mm · {{ t('Crop ETc', 'फसल जल माँग') }}: {{ rt.crop_etc_7d_mm }} mm (Kc={{ rt.kc }}) · {{ t('Forecast rain (7d)', 'बारिश अनुमान (7 दिन)') }}: {{ rt.rain_7d_mm }} mm · {{ t('Net 7d deficit', 'शुद्ध कमी') }}: {{ rt.net_deficit_7d_mm }} mm</small>
+</div>
+{% endif %}
+{% if water.events %}
+<div class="water-summary">
+  <div><span>{{ t('Each irrigation', 'हर सिंचाई') }}</span><strong>~{{ first.gross_cm }} cm</strong><small>{{ t('water depth over the field', 'खेत पर पानी की गहराई') }}</small></div>
+  <div><span>{{ t('Per Uttarakhand bigha', 'प्रति बीघा (उत्तराखंड)') }}</span><strong>{{ '{:,}'.format(first.litres_per_bigha) }} L</strong><small>{{ '{:,}'.format(first.litres_per_acre) }} L / {{ t('acre', 'एकड़') }}</small></div>
+  <div><span>{{ t('Whole field', 'पूरा खेत') }}</span><strong>{{ '{:,.0f}'.format(first.volume_m3) }} m³</strong><small>{{ '{:,}'.format(first.litres) }} {{ t('litres', 'लीटर') }}</small></div>
+  {% if water.paddy %}<div><span>{{ t('Standing water after irrigation', 'सिंचाई के बाद खड़ा पानी') }}</span><strong>~5 cm</strong><small>{{ t('re-flood when the tube shows 15 cm below surface', 'नली में पानी सतह से 15 cm नीचे जाए तब फिर भरें') }}</small></div>
+  {% else %}<div><span>{{ t('Wet the soil to', 'नमी की गहराई') }}</span><strong>~{{ first.root_cm or 15 }} cm</strong><small>{{ t('current root depth — not deeper', 'वर्तमान जड़ गहराई — इससे ज़्यादा नहीं') }}</small></div>{% endif %}
+</div>
+{% else %}<div class="notice">{{ t('No irrigation is expected in a normal season — see notes below.', 'सामान्य मौसम में सिंचाई की ज़रूरत नहीं — नीचे टिप्पणी देखें।') }}</div>{% endif %}
+{% for note in water['notes_' ~ locale] %}<div class="notice warning">{{ note }}</div>{% endfor %}
+{% if water.turn %}<div class="notice {{ 'danger' if water.turn.coverage < 1 else '' }}">{{ t('Your water turn delivers', 'आपकी बारी में मिलता है') }} <strong>{{ '{:,.0f}'.format(water.turn.delivered_m3) }} m³</strong>; {{ t('the largest irrigation needs', 'सबसे बड़ी सिंचाई में चाहिए') }} <strong>{{ '{:,.0f}'.format(water.turn.largest_event_m3) }} m³</strong> ({{ '%.1f'|format(water.turn.hours_needed) }} h). {{ t('Coverage', 'पूर्ति') }}: {{ '%.0f'|format(water.turn.coverage * 100) }}%</div>{% endif %}
+{% if water.events %}
+<div class="table-scroll"><table class="water-table"><thead><tr><th>#</th><th>{{ t('Date', 'तारीख') }}</th><th>{{ t('Crop stage', 'फसल अवस्था') }}</th><th>{{ t('Depth', 'गहराई') }}</th><th>{{ t('Litres / bigha', 'लीटर / बीघा') }}</th><th>{{ t('Field (m³)', 'खेत (m³)') }}</th>{% if water.events[0].pump_hours %}<th>{{ t('Pump hours', 'पंप घंटे') }}</th>{% endif %}<th></th></tr></thead><tbody>
+{% for e in water.events %}<tr class="{{ 'conditional' if e.conditional else '' }}"><td>{{ e.number }}</td><td>{{ e.date }}<small>{{ e.das }} {{ t('DAS', 'दिन') }}</small></td><td>{{ e['stage_' ~ locale] }}</td><td><strong>{{ e.gross_cm }} cm</strong><small>{{ t('net', 'शुद्ध') }} {{ e.net_mm }} mm</small></td><td>{{ '{:,}'.format(e.litres_per_bigha) }}</td><td>{{ '{:,.0f}'.format(e.volume_m3) }}</td>{% if e.pump_hours %}<td>{{ e.pump_hours }}</td>{% endif %}<td>{% if e.conditional %}<span class="risk unknown">{{ t('If dry', 'सूखा हो तो') }}</span>{% endif %}{% if e.postpone %}<span class="risk high">{{ t('Rain forecast — postpone', 'बारिश अनुमान — टालें') }} ({{ e.forecast_rain_mm }} mm)</span>{% endif %}</td></tr>{% endfor %}
+</tbody><tfoot><tr><th colspan="3">{{ t('Season total', 'मौसम कुल') }}</th><td>{{ water.season.gross_cm }} cm</td><td>{{ '{:,}'.format(water.season.litres_per_bigha) }}</td><td>{{ '{:,.0f}'.format(water.season.volume_m3) }}</td>{% if water.events[0].pump_hours %}<td>{{ water.season.pump_hours }}</td>{% endif %}<td></td></tr></tfoot></table></div>
+{% endif %}
+<p class="muted"><small>{{ t('Crop water use', 'फसल का जल उपयोग') }} {{ water.season.crop_et_mm }} mm · {{ t('rain usable by crop', 'उपयोगी वर्षा') }} {{ water.season.effective_rain_mm }} mm · {{ t('soil holds', 'मिट्टी रोकती है') }} {{ water.awc_mm_per_m }} mm/m · {{ t('method efficiency', 'तरीके की दक्षता') }} {{ (water.efficiency * 100)|round|int }}%</small></p>
+<div class="two-col">
+  <div><h3>{{ t('How to irrigate right', 'सही सिंचाई कैसे करें') }}</h3><ul class="check-list compact">{% for rule in water['how_' ~ locale] %}<li>{{ rule }}</li>{% endfor %}</ul></div>
+  <div><h3>{{ t('Never miss these stages', 'इन अवस्थाओं को न छोड़ें') }}</h3><ul class="stage-list">{% for c in water.critical %}<li><span>{{ c[locale] }}</span><small>~{{ c.das }} {{ t('days', 'दिन') }}</small></li>{% endfor %}</ul></div>
+</div>
+<h3>{{ t('Irrigation methods compared', 'सिंचाई के तरीकों की तुलना') }}</h3>
+<div class="method-grid">{% for m in water.comparison %}<article class="method-card {{ 'selected' if m.selected else '' }}">
+  <div class="method-head"><strong>{{ m['name_' ~ locale] }}</strong>{% if m.selected %}<span class="pill">{{ t('Your method', 'आपका तरीका') }}</span>{% endif %}</div>
+  <div class="method-numbers"><span><strong>{{ '{:,}'.format(m.season_m3) }}</strong> m³</span><span>{{ (m.season_mm / 10)|round(1) }} cm</span>{% if m.pump_hours %}<span>{{ m.pump_hours }} h</span>{% endif %}{% if m.saving_pct %}<span class="saving">−{{ m.saving_pct }}%</span>{% endif %}</div>
+  <div class="pros-cons"><ul class="pros">{% for p in m['pros_' ~ locale] %}<li>{{ p }}</li>{% endfor %}</ul><ul class="cons">{% for c in m['cons_' ~ locale] %}<li>{{ c }}</li>{% endfor %}</ul></div>
+</article>{% endfor %}</div>
+<p class="muted"><small>{{ t('Estimates use 10-year Roorkee climate averages; real weeks vary. Use the khurpi test and the forecast before each irrigation.', 'अनुमान रुड़की के 10 वर्ष के औसत मौसम पर आधारित; असली हफ़्ते अलग हो सकते हैं। हर सिंचाई से पहले खुरपी जाँच और मौसम देखें।') }}</small></p>

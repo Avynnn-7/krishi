@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ t('Read your Soil Health Card', 'मृदा स्वास्थ्य कार्ड पढ़ें') }}{% endblock %}
+{% block content %}
+<section class="container section">
+  <div class="eyebrow">{{ t('SOIL HEALTH CARD READER', 'मृदा स्वास्थ्य कार्ड') }}</div>
+  <h1 class="page-title">{{ t('What is your soil telling you?', 'आपकी मिट्टी क्या कहती है?') }}</h1>
+  <p class="page-intro">{{ t('Copy the numbers from your card. Get each value explained in plain words, with what to do and how much to buy.', 'कार्ड के अंक भरें। हर मान का आसान मतलब, क्या करें और कितना खरीदें — सब मिलेगा।') }}</p>
+  {% if error %}<div class="notice danger" role="alert">{{ error }}</div>{% endif %}
+  <div class="form-layout">
+    <form method="get" class="panel">
+      <div class="form-grid">
+        <label>{{ t('P and K are printed as', 'P और K कैसे छपे हैं') }}<select name="basis"><option value="elemental">P, K</option><option value="oxide" {% if values.get('basis') == 'oxide' %}selected{% endif %}>P₂O₅, K₂O</option></select></label>
+        <label>{{ t('Field area (ha) for quantities', 'मात्रा के लिए क्षेत्र (हे.)') }}<input type="number" name="area_ha" min="0.001" max="100" step="0.001" value="{{ values.get('area_ha', '1') }}"></label>
+        {% for key, label, max in [('N', 'N (kg/ha) *', 2000), ('P', 'P / P₂O₅ (kg/ha) *', 2000), ('K', 'K / K₂O (kg/ha) *', 3000), ('ph', 'pH', 14), ('ec', 'EC (dS/m)', 50), ('organic_carbon', t('Organic carbon %', 'जैविक कार्बन %'), 20), ('sulphur', 'S (mg/kg)', 500), ('zinc', 'Zn (mg/kg)', 100), ('iron', 'Fe (mg/kg)', 500), ('manganese', 'Mn (mg/kg)', 500), ('copper', 'Cu (mg/kg)', 100), ('boron', 'B (mg/kg)', 50)] %}
+        <label>{{ label }}<input type="number" name="{{ key }}" min="0" max="{{ max }}" step="0.01" value="{{ values.get(key, '') }}" {% if key in ['N', 'P', 'K'] %}required{% endif %}></label>
+        {% endfor %}
+      </div>
+      <button class="button">{{ t('Explain my card', 'मेरा कार्ड समझाएँ') }} →</button>
+    </form>
+    <aside class="form-aside"><h3>{{ t('Where do I find these?', 'ये कहाँ मिलेंगे?') }}</h3><p>{{ t('On the Soil Health Card table "Soil test results" (or at soilhealth.dac.gov.in). Use the "Value" column, not the rating.', 'मृदा स्वास्थ्य कार्ड की "मिट्टी जाँच परिणाम" तालिका में (या soilhealth.dac.gov.in पर)। "मान" वाला कॉलम लें।') }}</p><p>{{ t('No card yet? Testing is free under the Soil Health Card scheme — ask KVK Dhanauri or the district soil lab.', 'कार्ड नहीं? मृदा स्वास्थ्य कार्ड योजना में जाँच निःशुल्क — KVK धनौरी या जिला मृदा प्रयोगशाला से पूछें।') }}</p></aside>
+  </div>
+  {% if report %}{% set soil = report %}
+  <section class="panel"><div class="section-heading compact"><h2>{{ t('Your soil, explained', 'आपकी मिट्टी का मतलब') }}</h2>{% if soil.attention_count %}<span class="risk high">{{ soil.attention_count }} {{ t('need attention', 'पर ध्यान दें') }}</span>{% endif %}</div>
+    {% include "_soil_items.html" %}
+    <a class="button" href="{{ url_for('advisory') }}">{{ t('Turn this into a full fertilizer plan', 'इससे पूरी खाद योजना बनाएँ') }} →</a>
+  </section>
+  {% endif %}
+</section>
+{% endblock %}

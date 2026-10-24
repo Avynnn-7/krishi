@@ -1,0 +1,483 @@
+{
+  "source": "FAO Irrigation & Drainage Paper 56 (crop coefficients, stage lengths, depletion fraction p, rooting depth — scheduling uses the effective (most-active) root zone, shallower than FAO maximum rooting depth; Table 19 soil water midpoints), adapted for North-West Indian plains; wheat critical stages and 6 cm application depth from ICAR-IIWBR extension guidance; rice AWD rules from IRRI (re-flood to 5 cm when water is 15 cm below surface, keep flooded 1 week before to 1 week after flowering). Rainfall: FAO/CROPWAT dependable-rain formula applied to 10-year monthly means and spread evenly over each month. Method efficiencies are typical field application efficiencies; actual values depend on levelling, run length and management.",
+  "awc_mm_per_m": {
+    "sandy": 80,
+    "sandy-loam": 130,
+    "loam": 155,
+    "clay-loam": 155,
+    "clay": 160
+  },
+  "crops": {
+    "wheat": {
+      "kind": "upland",
+      "kc": [
+        0.4,
+        1.15,
+        0.3
+      ],
+      "stages": [
+        25,
+        45,
+        50,
+        30
+      ],
+      "root_m": [
+        0.15,
+        0.6
+      ],
+      "p": 0.5,
+      "stop_days_before_harvest": 25,
+      "default_method": "border",
+      "critical": [
+        {
+          "en": "Crown root initiation (CRI)",
+          "hi": "शिखर जड़ अवस्था (CRI)",
+          "das": 21,
+          "always": true
+        },
+        {
+          "en": "Late tillering",
+          "hi": "कल्ले निकलना",
+          "das": 42
+        },
+        {
+          "en": "Jointing",
+          "hi": "गाँठ बनना",
+          "das": 62
+        },
+        {
+          "en": "Flowering",
+          "hi": "फूल आना",
+          "das": 87
+        },
+        {
+          "en": "Milk stage",
+          "hi": "दूधिया अवस्था",
+          "das": 102
+        },
+        {
+          "en": "Dough stage",
+          "hi": "दाना सख्त होना",
+          "das": 117
+        }
+      ],
+      "priority": [
+        0,
+        3,
+        4,
+        2,
+        1,
+        5
+      ],
+      "anchor_stages": true,
+      "anchor_min_depletion": 0.3
+    },
+    "maize": {
+      "kind": "upland",
+      "kc": [
+        0.3,
+        1.2,
+        0.35
+      ],
+      "stages": [
+        20,
+        30,
+        40,
+        25
+      ],
+      "root_m": [
+        0.15,
+        0.6
+      ],
+      "p": 0.5,
+      "stop_days_before_harvest": 15,
+      "default_method": "furrow",
+      "critical": [
+        {
+          "en": "Knee-high",
+          "hi": "घुटने तक ऊँचाई",
+          "das": 30
+        },
+        {
+          "en": "Tasselling",
+          "hi": "नर मंजरी निकलना",
+          "das": 52
+        },
+        {
+          "en": "Silking",
+          "hi": "भुट्टे में रेशे",
+          "das": 60
+        },
+        {
+          "en": "Grain filling",
+          "hi": "दाना भरना",
+          "das": 75
+        }
+      ],
+      "priority": [
+        2,
+        1,
+        3,
+        0
+      ]
+    },
+    "sugarcane": {
+      "kind": "upland",
+      "kc": [
+        0.4,
+        1.25,
+        0.75
+      ],
+      "stages": [
+        30,
+        60,
+        180,
+        95
+      ],
+      "root_m": [
+        0.25,
+        0.75
+      ],
+      "p": 0.6,
+      "stop_days_before_harvest": 30,
+      "default_method": "furrow",
+      "critical": [
+        {
+          "en": "Germination",
+          "hi": "अंकुरण",
+          "das": 25
+        },
+        {
+          "en": "Formative / tillering phase",
+          "hi": "कल्ले बनने की अवस्था",
+          "das": 90
+        },
+        {
+          "en": "Grand growth",
+          "hi": "तेज बढ़वार",
+          "das": 180
+        }
+      ],
+      "priority": [
+        1,
+        0,
+        2
+      ]
+    },
+    "rice": {
+      "kind": "paddy",
+      "kc": [
+        1.05,
+        1.2,
+        0.75
+      ],
+      "stages": [
+        20,
+        30,
+        45,
+        25
+      ],
+      "default_method": "rice_awd",
+      "percolation_mm_day": {
+        "sandy": 10,
+        "sandy-loam": 6,
+        "loam": 4,
+        "clay-loam": 2.5,
+        "clay": 1.5
+      },
+      "land_preparation_mm": {
+        "sandy": 250,
+        "sandy-loam": 220,
+        "loam": 200,
+        "clay-loam": 170,
+        "clay": 150
+      },
+      "flowering_das": 65,
+      "drain_days_before_harvest": 12,
+      "critical": [
+        {
+          "en": "Tillering",
+          "hi": "कल्ले निकलना",
+          "das": 25
+        },
+        {
+          "en": "Panicle initiation",
+          "hi": "बाली बनना शुरू",
+          "das": 45
+        },
+        {
+          "en": "Flowering (keep flooded)",
+          "hi": "फूल आना (पानी भरा रखें)",
+          "das": 65
+        }
+      ]
+    }
+  },
+  "methods": {
+    "wild_flood": {
+      "en": "Wild flooding (whole field, no checks)",
+      "hi": "खुली बाढ़ सिंचाई (बिना क्यारी)",
+      "efficiency": 0.45,
+      "min_gross_mm": 70,
+      "crops": [
+        "wheat",
+        "maize",
+        "sugarcane"
+      ],
+      "pros_en": [
+        "No preparation or investment",
+        "Familiar practice"
+      ],
+      "pros_hi": [
+        "कोई तैयारी या खर्च नहीं",
+        "जाना-पहचाना तरीका"
+      ],
+      "cons_en": [
+        "Uneven: head end gets far more water",
+        "Washes nitrate below roots (fertilizer lost)",
+        "Waterlogging, weeds, more diesel/electricity"
+      ],
+      "cons_hi": [
+        "पानी असमान: नाली के पास ज़्यादा",
+        "यूरिया का नाइट्रेट जड़ों से नीचे बह जाता है",
+        "जलभराव, खरपतवार, ज़्यादा डीज़ल/बिजली"
+      ]
+    },
+    "border": {
+      "en": "Check basins / border strips (kiyari)",
+      "hi": "क्यारी / पट्टी सिंचाई",
+      "efficiency": 0.65,
+      "min_gross_mm": 50,
+      "crops": [
+        "wheat",
+        "maize",
+        "sugarcane"
+      ],
+      "pros_en": [
+        "Even depth with small, levelled checks",
+        "Low cost: only bunds",
+        "Easy to stop at the right depth"
+      ],
+      "pros_hi": [
+        "छोटी समतल क्यारियों में बराबर पानी",
+        "कम खर्च: केवल मेड़",
+        "सही गहराई पर रोकना आसान"
+      ],
+      "cons_en": [
+        "Labour to make bunds",
+        "Needs reasonably level land",
+        "Sandy soils need short checks"
+      ],
+      "cons_hi": [
+        "मेड़ बनाने में मज़दूरी",
+        "खेत समतल होना चाहिए",
+        "रेतीली मिट्टी में छोटी क्यारियाँ चाहिए"
+      ]
+    },
+    "laser_border": {
+      "en": "Laser-levelled field + borders",
+      "hi": "लेज़र समतलीकरण + क्यारी",
+      "efficiency": 0.75,
+      "min_gross_mm": 45,
+      "crops": [
+        "wheat",
+        "maize",
+        "sugarcane"
+      ],
+      "pros_en": [
+        "Typically saves 20–30% water",
+        "Uniform crop stand and fertilizer response",
+        "Shorter irrigation time"
+      ],
+      "pros_hi": [
+        "आमतौर पर 20–30% पानी की बचत",
+        "समान फसल और खाद का असर",
+        "सिंचाई में कम समय"
+      ],
+      "cons_en": [
+        "Hire charge for laser leveller",
+        "Repeat every few years",
+        "Booking needed (custom hiring centre/KVK)"
+      ],
+      "cons_hi": [
+        "लेज़र लेवलर का किराया",
+        "कुछ वर्षों में दोहराना",
+        "कस्टम हायरिंग सेंटर/KVK से बुकिंग"
+      ]
+    },
+    "furrow": {
+      "en": "Furrow / ridge irrigation",
+      "hi": "नाली (कूंड़) सिंचाई",
+      "efficiency": 0.65,
+      "min_gross_mm": 40,
+      "crops": [
+        "maize",
+        "sugarcane"
+      ],
+      "pros_en": [
+        "Water reaches roots without flooding the whole surface",
+        "Less crusting and lodging",
+        "Fertilizer can be placed near rows"
+      ],
+      "pros_hi": [
+        "पूरी सतह भरे बिना पानी जड़ों तक",
+        "कम पपड़ी और गिरना",
+        "खाद कतार के पास डाल सकते हैं"
+      ],
+      "cons_en": [
+        "Needs ridger/furrow opener",
+        "Long furrows lose water at the tail on sandy soil"
+      ],
+      "cons_hi": [
+        "रिजर/कूंड़ बनाने वाला यंत्र चाहिए",
+        "रेतीली मिट्टी में लंबी नाली के अंत में पानी कम"
+      ]
+    },
+    "raised_bed": {
+      "en": "Raised bed (FIRB) furrows",
+      "hi": "मेड़-नाली (FIRB) बुवाई",
+      "efficiency": 0.75,
+      "min_gross_mm": 35,
+      "crops": [
+        "wheat",
+        "maize"
+      ],
+      "pros_en": [
+        "Typically 25–30% less water",
+        "Less lodging and waterlogging",
+        "Lower seed rate"
+      ],
+      "pros_hi": [
+        "आमतौर पर 25–30% कम पानी",
+        "फसल कम गिरती है, जलभराव कम",
+        "कम बीज"
+      ],
+      "cons_en": [
+        "Bed planter needed",
+        "Changes sowing practice",
+        "Beds must be reshaped"
+      ],
+      "cons_hi": [
+        "बेड प्लांटर चाहिए",
+        "बुवाई का तरीका बदलता है",
+        "मेड़ फिर से बनानी पड़ती है"
+      ]
+    },
+    "sprinkler": {
+      "en": "Sprinkler",
+      "hi": "फव्वारा (स्प्रिंकलर)",
+      "efficiency": 0.75,
+      "min_gross_mm": 15,
+      "crops": [
+        "wheat",
+        "maize"
+      ],
+      "pros_en": [
+        "Light, controlled irrigations — good for sandy soil",
+        "No field channels or levelling needed",
+        "Subsidy under PMKSY 'Per Drop More Crop'"
+      ],
+      "pros_hi": [
+        "हल्की, नियंत्रित सिंचाई — रेतीली मिट्टी के लिए अच्छी",
+        "नाली/समतलीकरण की ज़रूरत नहीं",
+        "PMKSY 'पर ड्रॉप मोर क्रॉप' में अनुदान"
+      ],
+      "cons_en": [
+        "Pipes and pump pressure needed",
+        "Wind distorts spray",
+        "Not usable with low-pressure canal water"
+      ],
+      "cons_hi": [
+        "पाइप और दबाव वाला पंप चाहिए",
+        "हवा में असमान छिड़काव",
+        "कम दबाव वाले नहर के पानी से नहीं चलता"
+      ]
+    },
+    "drip": {
+      "en": "Drip (with fertigation)",
+      "hi": "टपक (ड्रिप) + फर्टिगेशन",
+      "efficiency": 0.9,
+      "min_gross_mm": 5,
+      "crops": [
+        "sugarcane",
+        "maize"
+      ],
+      "pros_en": [
+        "Highest water saving (often 30–50% vs flooding)",
+        "Fertigation: fertilizer goes exactly to roots",
+        "Fewer weeds between rows"
+      ],
+      "pros_hi": [
+        "सबसे ज़्यादा पानी बचत (बाढ़ के मुकाबले अक्सर 30–50%)",
+        "फर्टिगेशन: खाद सीधे जड़ों में",
+        "कतारों के बीच कम खरपतवार"
+      ],
+      "cons_en": [
+        "High upfront cost (subsidy available)",
+        "Filters/clogging need maintenance",
+        "Needs reliable pump/electricity"
+      ],
+      "cons_hi": [
+        "शुरुआती खर्च ज़्यादा (अनुदान उपलब्ध)",
+        "फ़िल्टर साफ़ करना, जाम होने का खतरा",
+        "भरोसेमंद पंप/बिजली चाहिए"
+      ]
+    },
+    "rice_cf": {
+      "en": "Continuous flooding (paddy)",
+      "hi": "लगातार पानी भरा रखना (धान)",
+      "efficiency": 0.9,
+      "min_gross_mm": 0,
+      "crops": [
+        "rice"
+      ],
+      "pros_en": [
+        "Suppresses weeds",
+        "Simple rule: keep water standing"
+      ],
+      "pros_hi": [
+        "खरपतवार कम",
+        "आसान नियम: पानी भरा रखें"
+      ],
+      "cons_en": [
+        "Most water and pumping",
+        "High percolation loss on light soils",
+        "More methane emission"
+      ],
+      "cons_hi": [
+        "सबसे ज़्यादा पानी और पंपिंग",
+        "हल्की मिट्टी में रिसाव से ज़्यादा नुकसान",
+        "मीथेन गैस ज़्यादा"
+      ]
+    },
+    "rice_awd": {
+      "en": "Alternate wetting and drying (AWD)",
+      "hi": "बारी-बारी गीला-सूखा (AWD)",
+      "efficiency": 0.9,
+      "min_gross_mm": 0,
+      "crops": [
+        "rice"
+      ],
+      "pros_en": [
+        "Typically 15–30% less water without yield loss when done safely",
+        "Fewer pumping hours",
+        "Less methane"
+      ],
+      "pros_hi": [
+        "सही तरीके से करने पर आमतौर पर 15–30% कम पानी, उपज में कमी नहीं",
+        "कम पंपिंग घंटे",
+        "कम मीथेन"
+      ],
+      "cons_en": [
+        "Needs a field water tube and timely water",
+        "More weeds if started too early",
+        "Hard with fixed canal turns"
+      ],
+      "cons_hi": [
+        "खेत में पानी की नली (ट्यूब) और समय पर पानी चाहिए",
+        "जल्दी शुरू करने पर खरपतवार",
+        "तय नहर बारी में कठिन"
+      ]
+    }
+  }
+}

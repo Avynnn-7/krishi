@@ -1,0 +1,9 @@
+<div class="soil-grid">{% for item in soil['items'] %}<article class="soil-item {{ item.tone }}">
+  <div class="soil-head"><span>{{ item['label_' ~ locale] }}</span><span class="rating {{ item.tone }}">{{ item.rating_hi if locale == 'hi' else item.rating|replace('_', ' ')|title }}</span></div>
+  <div class="soil-value">{{ item.value }} <small>{{ item.unit }}</small></div>
+  <div class="gauge{{ " ph" if item.key == "ph" else "" }}" aria-hidden="true" data-gauge="{{ (item.gauge * 100)|round(1) }}"><span></span></div>
+  <p>{{ item['meaning_' ~ locale] }}</p>
+</article>{% endfor %}</div>
+{% if soil.amendments %}<h3>{{ t('Soil corrections', 'मिट्टी सुधार') }}</h3><div class="table-scroll"><table><thead><tr><th>{{ t('Product', 'उत्पाद') }}</th><th>{{ t('Per hectare', 'प्रति हेक्टेयर') }}</th><th>{{ t('This field', 'इस खेत में') }}</th><th>{{ t('How', 'कैसे') }}</th></tr></thead><tbody>{% for a in soil.amendments %}<tr><th>{{ a['product_' ~ locale] }}</th><td>{{ a.kg_ha ~ ' kg' if a.kg_ha else '—' }}</td><td>{{ a.kg_field ~ ' kg' if a.kg_field else '—' }}</td><td>{{ a['how_' ~ locale] }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}
+{% for warning in soil.plausibility %}<div class="notice danger">{{ warning }}</div>{% endfor %}
+<p class="muted"><small>{{ t('Ratings follow common Indian soil-test limits; if your printed card shows a different rating, trust the card and your lab.', 'रेटिंग सामान्य भारतीय सीमाओं पर आधारित; छपे कार्ड की रेटिंग अलग हो तो कार्ड और लैब को मानें।') }}</small></p>

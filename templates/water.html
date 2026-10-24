@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}{{ t('Irrigation water calculator', 'सिंचाई पानी कैलकुलेटर') }}{% endblock %}
+{% block content %}
+<section class="container section">
+  <div class="eyebrow">{{ t('WATER CALCULATOR', 'पानी कैलकुलेटर') }}</div>
+  <h1 class="page-title">{{ t('Enough water — not a drop more.', 'पूरा पानी — एक बूँद भी ज़्यादा नहीं।') }}</h1>
+  <p class="page-intro">{{ t('How many irrigations, how deep, how many litres and pump hours — and what changes if you switch method.', 'कितनी सिंचाई, कितनी गहराई, कितने लीटर और पंप घंटे — और तरीका बदलने से क्या फर्क।') }}</p>
+  {% if error %}<div class="notice danger" role="alert">{{ error }}</div>{% endif %}
+  <form method="get" class="panel">
+    <div class="form-grid three">
+      <label>{{ t('Crop', 'फसल') }}<select name="crop" id="crop">{% for crop, name in [('wheat', t('Wheat','गेहूं')), ('sugarcane',t('Sugarcane','गन्ना')), ('rice',t('Rice (paddy)','धान')), ('maize',t('Maize','मक्का'))] %}<option value="{{ crop }}" {% if values.get('crop') == crop %}selected{% endif %}>{{ name }}</option>{% endfor %}</select></label>
+      <label>{{ t('Sowing / transplanting date', 'बुवाई / रोपाई तारीख') }}<input type="date" name="sowing_date" value="{{ values.get('sowing_date', today) }}" required></label>
+      <label>{{ t('Soil texture', 'मिट्टी') }}<select name="texture">{% for val,label in [('sandy',t('Sandy','रेतीली')),('sandy-loam',t('Sandy loam','बलुई दोमट')),('loam',t('Loam','दोमट')),('clay-loam',t('Clay loam','चिकनी दोमट')),('clay',t('Clay','चिकनी'))] %}<option value="{{ val }}" {% if values.get('texture','loam') == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+      <label>{{ t('Area', 'क्षेत्र') }}<input type="number" name="area" min="0.001" max="10000" step="0.001" value="{{ values.get('area', '1') }}"></label>
+      <label>{{ t('Unit', 'इकाई') }}<select name="area_unit" id="area-unit">{% for unit, label in [('ha', t('hectare','हेक्टेयर')), ('acre', t('acre','एकड़')), ('bigha', t('bigha','बीघा'))] %}<option value="{{ unit }}" {% if values.get('area_unit') == unit %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+      <label id="bigha-field">{{ t('m² per bigha', 'प्रति बीघा m²') }}<input type="number" name="bigha_m2" id="bigha-m2" min="100" max="10000" step="0.01" value="{{ values.get('bigha_m2', '632.29') }}"></label>
+      <label>{{ t('Method', 'तरीका') }}<select name="method" id="method"><option value="">{{ t('Typical for crop', 'फसल के अनुसार') }}</option>{% for id, m in methods.items() %}<option value="{{ id }}" data-crops="{{ m.crops|join(' ') }}" {% if values.get('method') == id %}selected{% endif %}>{{ m[locale] }}</option>{% endfor %}</select></label>
+      <label>{{ t('Flow (litres/second)', 'बहाव (लीटर/सेकंड)') }}<input type="number" name="flow_lps" min="0.01" max="500" step="0.01" value="{{ values.get('flow_lps', '') }}" placeholder="{{ t('optional', 'वैकल्पिक') }}"></label>
+      <label>{{ t('Turn hours', 'बारी के घंटे') }}<input type="number" name="turn_hours" min="0.01" max="72" step="0.1" value="{{ values.get('turn_hours', '') }}" placeholder="{{ t('optional', 'वैकल्पिक') }}"></label>
+      <label>{{ t('Irrigations available', 'उपलब्ध सिंचाइयाँ') }}<input type="number" name="max_irrigations" min="0" max="30" step="1" value="{{ values.get('max_irrigations', '') }}" placeholder="{{ t('optional', 'वैकल्पिक') }}"></label>
+    </div>
+    <button class="button">{{ t('Calculate water', 'पानी की गणना') }} →</button>
+  </form>
+  {% if plan %}{% set water = plan %}
+  <section class="panel"><div class="section-heading compact"><h2>{{ water['method_' ~ locale] }} · {{ '%.3f'|format(water.area_ha) }} ha</h2><span class="pill">{{ water.season.count }} {{ t('irrigations', 'सिंचाई') }}</span></div>
+    {% include "_water_plan.html" %}
+  </section>
+  {% endif %}
+</section>
+{% endblock %}

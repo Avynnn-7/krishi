@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Plan your inputs') }}{% endblock %}
+{% macro num(name, label, min, max, step='any', placeholder='', help='') -%}
+<label>{{ label }}<input type="number" name="{{ name }}" value="{{ values.get(name, '') }}" min="{{ min }}" max="{{ max }}" step="{{ step }}" placeholder="{{ placeholder }}">{% if help %}<small>{{ help }}</small>{% endif %}</label>
+{%- endmacro %}
+{% block content %}
+<section class="container section">
+  <div class="eyebrow">{{ t('FARMER-FRIENDLY SMART ADVISORY', 'किसान-अनुकूल स्मार्ट सलाह') }}</div>
+  <h1 class="page-title">{{ t('Let’s make a field plan.', 'खेत की योजना बनाएँ।') }}</h1>
+  <p class="page-intro">{{ t('Speak in Hindi/English, use GPS, or pick from simple options. Soil health, GPS coordinates, pump flow and live Open-Meteo irrigation demand are fetched automatically.', 'माइक 🎤 से बोलें, GPS चालू करें या आसान विकल्प चुनें। मिट्टी की जाँच, GPS, पंप बहाव और लाइव मौसम से पानी की मात्रा अपने-आप जुड़ती है।') }}</p>
+  {% if error %}<div class="notice danger" role="alert"><strong>{{ t('Please check your inputs', 'कृपया मान जाँचें') }}</strong><p>{{ error }}</p></div>{% endif %}
+
+  <div class="panel smart-bar">
+    <div class="smart-bar-row">
+      <div>
+        <strong>🎤 {{ t('Speak or Auto-Detect Your Field', 'बोलकर या GPS से खेत की जानकारी स्वतः भरें') }}</strong>
+        <p class="muted" id="form-voice-status">{{ t('Say e.g. "Roorkee Dhandera 5 bigha wheat budget 2500" or click GPS.', 'बोलें जैसे: "रुड़की ढंडेरा 5 बीघा गेहूं बजट 2500" या GPS दबाएँ।') }}</p>
+      </div>
+      <div class="actions">
+        <button type="button" class="button" id="form-mic-btn">🎤 {{ t('Speak (Hindi / EN)', 'बोलकर भरें') }}</button>
+        <button type="button" class="button secondary" data-locate>📍 {{ t('Auto-Detect GPS', 'GPS लोकेशन लें') }}</button>
+      </div>
+    </div>
+    <div class="chip-row">
+      <button type="button" class="chip" data-form-voice-sample="रुड़की के ढंडेरा गाँव में 5 बीघा गेहूं बोना है बजट 2500 रुपये">🗣️ "रुड़की ढंडेरा, 5 बीघा गेहूं, बजट ₹2,500"</button>
+      <button type="button" class="chip" data-form-voice-sample="भगवानपुर के चूड़ियाला में 10 बीघा गन्ना बजट 5000">🗣️ "भगवानपुर चूड़ियाला, 10 बीघा गन्ना, बजट ₹5,000"</button>
+      <button type="button" class="chip" data-form-voice-sample="लक्सर के सुल्तानपुर में 1 एकड़ धान बजट 3000">🗣️ "लक्सर सुल्तानपुर, 1 एकड़ धान, बजट ₹3,000"</button>
+    </div>
+    <div class="smart-search-row">
+      <input type="text" id="place-search" placeholder="{{ t('Or paste Google Maps link / coordinates (29.85, 77.88) / village name…', 'या Google Maps लिंक / निर्देशांक (29.85, 77.88) / गाँव का नाम यहाँ लिखें…') }}">
+      <button type="button" class="button secondary small" id="place-search-btn">{{ t('Auto-fill location & soil', 'लोकेशन व मिट्टी स्वतः भरें') }}</button>
+      <small data-locate-status aria-live="polite"></small>
+    </div>
+  </div>
+
+  <div class="form-layout">
+    <form method="post" action="{{ url_for('advisory') }}" class="panel advisory-form" data-multistep>
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <div class="step-nav" aria-label="{{ t('Form progress', 'फॉर्म प्रगति') }}"><span class="active">01 {{ t('Field & Crop', 'खेत व फसल') }}</span><span>02 {{ t('Auto Soil & Water', 'मिट्टी व पानी (स्वतः)') }}</span><span>03 {{ t('Budget & Habit', 'बजट व आदत') }}</span></div>
+
+      <fieldset data-step><legend>{{ t('1. Your field & crop (4 simple choices)', '1. आपका खेत और फसल (केवल 4 आसान चुनाव)') }}</legend>
+        <div class="form-grid">
+          <label>{{ t('Block (Haridwar–Roorkee Belt)', 'ब्लॉक (हरिद्वार–रुड़की क्षेत्र)') }} *
+            <select name="block" id="block-select" required>
+              {% set sel_block = values.get('block') or request.args.get('block') or 'Roorkee' %}
+              {% for block in blocks %}
+              <option value="{{ block }}" {% if sel_block == block %}selected{% endif %}>
+                {{ block_info.blocks[block].hi if locale == 'hi' else block }}{% if block in block_info.focus_blocks %} ★{% endif %}
+              </option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>{{ t('Select Village (or type below)', 'गाँव चुनें (या नीचे नाम लिखें)') }}
+            <select id="village-select">
+              <option value="">{{ t('— Choose village in block —', '— ब्लॉक का गाँव चुनें —') }}</option>
+              {% for b_name, b_data in block_info.blocks.items() %}
+                {% for v in b_data.villages %}
+                <option value="{{ v.name }}" data-block="{{ b_name }}" data-lat="{{ v.lat }}" data-lon="{{ v.lon }}" data-texture="{{ v.texture }}">{{ v.hi if locale == 'hi' else v.name }} ({{ b_data.hi if locale == 'hi' else b_name }})</option>
+                {% endfor %}
+              {% endfor %}
+            </select>
+          </label>
+          <label>{{ t('Village name', 'गाँव का नाम') }} *<input name="village" id="village-input" value="{{ values.get('village') or request.args.get('village') or 'Dhandera' }}" maxlength="80" required placeholder="{{ t('Your village name', 'गाँव का नाम') }}" autocomplete="address-level3"></label>
+          <label>{{ t('Crop', 'फसल') }} *<select name="crop" id="crop" required>{% for crop, name in [('wheat', t('Wheat (गेहूं)','गेहूं (Wheat)')), ('sugarcane',t('Sugarcane (गन्ना)','गन्ना (Sugarcane)')), ('rice',t('Rice / Paddy (धान)','धान (Rice)')), ('maize',t('Maize (मक्का)','मक्का (Maize)'))] %}<option value="{{ crop }}" {% if values.get('crop') == crop %}selected{% endif %}>{{ name }}</option>{% endfor %}</select></label>
+          <label>{{ t('Field area', 'खेत का क्षेत्रफल') }} *<input type="number" name="area" id="area-input" value="{{ values.get('area', '5') }}" min="0.001" max="2000" step="0.001" required></label>
+          <label>{{ t('Area unit', 'इकाई') }}<select name="area_unit" id="area-unit">{% set sel_unit = values.get('area_unit', 'bigha') %}{% for unit, label in [('bigha', t('bigha (बीघा)','बीघा (bigha)')), ('acre', t('acre (एकड़)','एकड़ (acre)')), ('ha', t('hectare (हेक्टेयर)','हेक्टेयर (hectare)'))] %}<option value="{{ unit }}" {% if sel_unit == unit %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+          <div class="span-2 chip-row" aria-label="{{ t('Quick area presets', 'क्षेत्र के त्वरित विकल्प') }}">
+            <small class="muted">{{ t('Quick tap:', 'त्वरित चुनें:') }}</small>
+            <button type="button" class="chip" data-area-preset="2" data-unit-preset="bigha">2 {{ t('bigha', 'बीघा') }}</button>
+            <button type="button" class="chip" data-area-preset="5" data-unit-preset="bigha">5 {{ t('bigha', 'बीघा') }}</button>
+            <button type="button" class="chip" data-area-preset="10" data-unit-preset="bigha">10 {{ t('bigha', 'बीघा') }}</button>
+            <button type="button" class="chip" data-area-preset="1" data-unit-preset="acre">1 {{ t('acre', 'एकड़') }}</button>
+            <button type="button" class="chip" data-area-preset="1" data-unit-preset="ha">1 {{ t('hectare', 'हेक्टेयर') }}</button>
+          </div>
+          <div id="bigha-field" class="span-2 bigha-box">
+            <label>{{ t('Which bigha?', 'कौन सा बीघा?') }}<select id="bigha-preset">{% for preset in block_info.bigha_presets %}<option value="{{ preset.m2 }}">{{ preset[locale] }}</option>{% endfor %}<option value="">{{ t('Other (enter m²)', 'अन्य (m² भरें)') }}</option></select></label>
+            <label>{{ t('Square metres per bigha', 'एक बीघा में वर्ग मीटर') }}<input type="number" name="bigha_m2" id="bigha-m2" min="100" max="10000" step="0.01" value="{{ values.get('bigha_m2', '632.29') }}"></label>
+          </div>
+          <label class="span-2">{{ t('Sowing / planting date', 'बुवाई / रोपाई की तारीख') }} *<input type="date" name="sowing_date" id="sowing-date" value="{{ values.get('sowing_date', today) }}" required></label>
+        </div>
+      </fieldset>
+
+      <fieldset data-step><legend>{{ t('2. Soil & water (auto-fetched for your village)', '2. मिट्टी और पानी (गाँव के अनुसार स्वतः भरा गया)') }}</legend>
+        <div class="notice" id="form-autofill-banner" aria-live="polite">
+          <strong id="af-soil-title">🧪 {{ t('Auto-loaded soil & live weather for your village', 'आपके गाँव की मिट्टी और लाइव मौसम स्वतः जुड़ गए हैं') }}</strong>
+          <p id="af-soil-detail">{{ t('Selecting your block and village automatically loads the Official Village Soil Test or KVK Dhanauri 6-Block Survey values and live Open-Meteo evapotranspiration.', 'ब्लॉक और गाँव चुनते ही आधिकारिक गाँव मिट्टी जाँच या KVK धनौरी सर्वेक्षण और लाइव मौसम जुड़ जाता है।') }}</p>
+          <small id="af-water-detail"></small>
+        </div>
+
+        <div class="form-grid">
+          <label>{{ t('Soil data source', 'मिट्टी की जानकारी कहाँ से लें?') }}
+            {% set smode = values.get('soil_mode', 'auto') %}
+            <select name="soil_mode" id="soil-mode">
+              <option value="auto" {% if smode == 'auto' %}selected{% endif %}>✨ {{ t('Auto-fill from Village / KVK Block Soil Data (Recommended)', 'गाँव / KVK ब्लॉक की सरकारी मिट्टी जाँच से स्वतः लें (सुझाया गया)') }}</option>
+              <option value="card" {% if smode == 'card' %}selected{% endif %}>📋 {{ t('I have my own Soil Health Card (enter values)', 'मेरे पास अपना मृदा स्वास्थ्य कार्ड है (मान भरें)') }}</option>
+              <option value="none" {% if smode == 'none' %}selected{% endif %}>{{ t('General crop dose only (no soil adjustment)', 'केवल सामान्य फसल खुराक (बिना मिट्टी बदलाव)') }}</option>
+            </select>
+          </label>
+          <label>{{ t('Soil texture (auto-selected)', 'मिट्टी का प्रकार (स्वतः चयनित)') }}<select name="texture" id="texture-select">{% for val,label in [('sandy',t('Sandy (balui)','रेतीली (बलुई)')),('sandy-loam',t('Sandy loam','बलुई दोमट')),('loam',t('Loam (domat)','दोमट')),('clay-loam',t('Clay loam','चिकनी दोमट')),('clay',t('Clay (matiyar)','चिकनी (मटियार)'))] %}<option value="{{ val }}" {% if values.get('texture','sandy-loam') == val %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+        </div>
+
+        <div id="soil-fields">
+          <div class="form-grid">
+            <label>{{ t('How does the card report P and K?', 'कार्ड में P और K कैसे लिखे हैं?') }}<select name="soil_basis"><option value="elemental">{{ t('As P and K (kg/ha)', 'P और K (kg/ha)') }}</option><option value="oxide" {% if values.get('soil_basis') == 'oxide' %}selected{% endif %}>{{ t('As P₂O₅ and K₂O (kg/ha)', 'P₂O₅ और K₂O (kg/ha)') }}</option></select><small>{{ t('Values in ppm (mg/kg)? Multiply by 2.24 for kg/ha.', 'ppm (mg/kg) में हैं? kg/ha के लिए 2.24 से गुणा करें।') }}</small></label>
+            {% for nutrient,limit in [('N',2000),('P',2000),('K',3000)] %}<label>{{ nutrient }} (kg/ha) *<input name="soil_{{ nutrient }}" id="soil-{{ nutrient }}" type="number" min="0" max="{{ limit }}" step="0.01" value="{{ values.get('soil_' ~ nutrient, '') }}" data-soil-required></label>{% endfor %}
+          </div>
+          <details class="inline-details" {% if values.get('soil_ph') or values.get('soil_zinc') %}open{% endif %}><summary>{{ t('More card values (pH, EC, OC, S, micronutrients)', 'और मान (pH, EC, OC, गंधक, सूक्ष्म पोषक)') }}</summary>
+            <div class="form-grid three">
+              {{ num('soil_ph', 'pH', 0, 14, 0.01) }}
+              {{ num('soil_ec', 'EC (dS/m)', 0, 50, 0.01) }}
+              {{ num('soil_organic_carbon', t('Organic carbon %', 'जैविक कार्बन %'), 0, 20, 0.01) }}
+              {{ num('soil_sulphur', t('Sulphur S (mg/kg)', 'गंधक S (mg/kg)'), 0, 500, 0.01) }}
+              {{ num('soil_zinc', t('Zinc Zn (mg/kg)', 'जिंक Zn (mg/kg)'), 0, 100, 0.01) }}
+              {{ num('soil_iron', t('Iron Fe (mg/kg)', 'लोहा Fe (mg/kg)'), 0, 500, 0.01) }}
+              {{ num('soil_manganese', t('Manganese Mn (mg/kg)', 'मैंगनीज़ Mn (mg/kg)'), 0, 500, 0.01) }}
+              {{ num('soil_copper', t('Copper Cu (mg/kg)', 'तांबा Cu (mg/kg)'), 0, 100, 0.01) }}
+              {{ num('soil_boron', t('Boron B (mg/kg)', 'बोरॉन B (mg/kg)'), 0, 50, 0.01) }}
+            </div>
+          </details>
+        </div>
+
+        <label>{{ t('Farmyard manure / trolleys of gobar khad (t/ha)', 'गोबर खाद / कम्पोस्ट (टन/हेक्टेयर)') }}<input type="number" name="fym_t_ha" min="0" max="40" step="0.1" value="{{ values.get('fym_t_ha', '0') }}"><small>{{ t('1 trolley ≈ 2 tonnes. Reduces chemical fertilizer needed.', '1 ट्रॉली ≈ 2 टन। इससे रासायनिक खाद की ज़रूरत घटती है।') }}</small></label>
+
+        <h3 class="form-subhead">{{ t('Water & Irrigation (select your pump/canal)', 'पानी और सिंचाई (अपना पंप या नहर चुनें)') }}</h3>
+        <div class="form-grid">
+          <label>{{ t('Irrigation method', 'सिंचाई का तरीका') }}<select name="irrigation_method" id="method"><option value="">{{ t('Typical for this crop', 'फसल के अनुसार सामान्य') }}</option>{% for id, m in methods.items() %}<option value="{{ id }}" data-crops="{{ m.crops|join(' ') }}" {% if values.get('irrigation_method') == id %}selected{% endif %}>{{ m[locale] }}</option>{% endfor %}</select></label>
+          <label>{{ t('Water source / pump size (sets flow automatically)', 'पानी का साधन / पंप (बहाव अपने-आप भरेगा)') }}
+            <select id="water-source-preset">
+              {% for wp in block_info.water_source_presets %}
+              <option value="{{ wp.flow_lps }}" data-hours="{{ wp.turn_hours }}">{{ wp[locale] }}</option>
+              {% endfor %}
+              <option value="">{{ t('Custom flow (enter below)', 'अन्य बहाव (नीचे भरें)') }}</option>
+            </select>
+          </label>
+        </div>
+        <details class="inline-details" {% if values.get('irrigation_at') or values.get('max_irrigations') %}open{% endif %}>
+          <summary>{{ t('Optional: Canal turn time, drum flow test, or exact GPS', 'वैकल्पिक: नहर की बारी का समय, ड्रम जाँच या GPS निर्देशांक') }}</summary>
+          <div class="form-grid">
+            <label>{{ t('Water flow (litres/second)', 'पानी का बहाव (लीटर/सेकंड)') }}<input type="number" name="flow_lps" id="flow-lps" min="0.01" max="500" step="0.01" value="{{ values.get('flow_lps', '10') }}"><small><button type="button" class="text-button" data-drum-toggle>{{ t('Measure with a drum ↓', 'ड्रम से नापें ↓') }}</button></small></label>
+            <div class="drum-helper span-2" hidden data-drum><p>{{ t('Time how long the pipe takes to fill a drum or bucket.', 'पाइप से ड्रम/बाल्टी भरने में लगा समय नापें।') }}</p><div class="form-grid three"><label>{{ t('Container (litres)', 'बर्तन (लीटर)') }}<input type="number" min="1" step="1" value="200" data-drum-litres></label><label>{{ t('Seconds to fill', 'भरने में सेकंड') }}<input type="number" min="1" step="0.1" data-drum-seconds></label><div class="drum-result" data-drum-result aria-live="polite"></div></div></div>
+            <label>{{ t('Hours of water per turn', 'हर बारी में पानी के घंटे') }}<input type="number" name="turn_hours" id="turn-hours" min="0.1" max="72" step="0.1" value="{{ values.get('turn_hours', '4') }}"></label>
+            <label>{{ t('Irrigations you can get this season', 'इस मौसम कितनी सिंचाई मिल सकती है') }}<input type="number" name="max_irrigations" min="0" max="30" step="1" value="{{ values.get('max_irrigations', '') }}"></label>
+            <label>{{ t('Next water turn (IST)', 'अगली पानी की बारी (IST)') }}<input type="datetime-local" name="irrigation_at" value="{{ values.get('irrigation_at', '') }}"></label>
+            <label>{{ t('Turn repeats every (days)', 'बारी कितने दिन में') }}<input type="number" name="irrigation_cycle_days" min="1" max="30" value="{{ values.get('irrigation_cycle_days','7') }}"></label>
+            <label>{{ t('Latitude (auto-filled)', 'अक्षांश (स्वतः)') }}<input name="latitude" id="lat" type="number" step="any" min="-90" max="90" value="{{ values.get('latitude','') }}" placeholder="29.85"></label>
+            <label>{{ t('Longitude (auto-filled)', 'देशांतर (स्वतः)') }}<input name="longitude" id="lon" type="number" step="any" min="-180" max="180" value="{{ values.get('longitude','') }}" placeholder="77.88"></label>
+          </div>
+        </details>
+      </fieldset>
+
+      <fieldset data-step><legend>{{ t('3. Fertilizer budget & usual habit', '3. खाद का बजट और आपकी सामान्य आदत') }}</legend>
+        <div class="form-grid">
+          <label>{{ t('Fertilizer budget for the whole field (₹)', 'पूरे खेत का खाद बजट (₹)') }} *
+            <input name="budget" id="budget-input" type="number" min="0" max="1000000" step="0.01" value="{{ values.get('budget','2000') }}" required>
+          </label>
+          <div>
+            <small class="muted">{{ t('Quick budget / auto-estimate for your land:', 'आपके खेत के अनुसार सुझाया बजट:') }}</small>
+            <div class="chip-row">
+              <button type="button" class="chip" id="suggested-budget-btn" data-budget-preset="2000">✨ {{ t('Recommended: ₹2,000', 'सुझाया: ₹2,000') }}</button>
+              <button type="button" class="chip" data-budget-preset="1500">₹1,500</button>
+              <button type="button" class="chip" data-budget-preset="2500">₹2,500</button>
+              <button type="button" class="chip" data-budget-preset="4000">₹4,000</button>
+              <button type="button" class="chip" data-budget-preset="6000">₹6,000</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-scroll"><table class="input-table">
+          <thead><tr><th>{{ t('Product', 'खाद') }}</th><th>{{ t('Price per bag (₹)', 'प्रति बोरी भाव (₹)') }}</th><th>{{ t('In stock?', 'दुकान पर?') }}</th><th>{{ t('Bags you usually use', 'आप आमतौर पर कितनी बोरी') }}</th></tr></thead>
+          <tbody>{% for p in products %}<tr>
+            <th>{{ p.name_hi if locale == 'hi' else p.name }}<small>{{ p.weight_kg|int }} kg · N {{ (p.N*100)|round|int }} P₂O₅ {{ (p.P2O5*100)|round|int }} K₂O {{ (p.K2O*100)|round|int }}{% if p.S %} S {{ (p.S*100)|round|int }}{% endif %}</small></th>
+            <td><input type="number" name="price_{{ p.id }}" min="0.01" max="100000" step="0.01" placeholder="{{ '%.2f'|format(p.price_rs) }}" value="{{ values.get('price_' ~ p.id, '') }}" aria-label="{{ p.name }} price"></td>
+            <td><label class="check"><input type="checkbox" name="unavailable_{{ p.id }}" value="1" {% if values.get('unavailable_' ~ p.id) %}checked{% endif %}> {{ t('Not available', 'उपलब्ध नहीं') }}</label></td>
+            <td><input type="number" name="practice_{{ p.id }}" min="0" max="1000" step="0.5" value="{{ values.get('practice_' ~ p.id, '') }}" aria-label="{{ p.name }} usual bags"></td>
+          </tr>{% endfor %}</tbody>
+        </table></div>
+        <small>{{ t('Leave price blank to use the reference MRP. Entering "Bags you usually use" shows how much money and DAP you can save.', 'भाव खाली छोड़ें तो सरकारी संदर्भ भाव लिया जाएगा। "सामान्य बोरी" भरने से पता चलेगा कि आप DAP और पैसे की कितनी बचत कर सकते हैं।') }}</small>
+
+        <details class="inline-details top-gap">
+          <summary>🔬 {{ t('KVK Scientist Mode (STCR Profile & Target Yield)', 'KVK वैज्ञानिक मोड (STCR प्रोफाइल व लक्षित उपज)') }}</summary>
+          <div class="form-grid">
+            <label>{{ t('Calculation profile', 'गणना प्रोफाइल') }}<select name="stcr_profile"><option value="">{{ t('Automatic (soil-test rating 125/100/75%)', 'स्वचालित (मिट्टी रेटिंग 125/100/75%)') }}</option>{% for id, profile in profiles.items() %}<option value="{{ id }}" {% if values.get('stcr_profile') == id %}selected{% endif %}>{{ profile.crop }} · {{ profile.region }} · {{ profile.source }}</option>{% endfor %}</select></label>
+            <label>{{ t('Target yield (q/ha, for STCR)', 'लक्षित उपज (क्विं./हे., STCR हेतु)') }}<input name="target_yield" type="number" min="0.1" max="2000" step="0.1" value="{{ values.get('target_yield', '50') }}"></label>
+          </div>
+        </details>
+
+        <div class="notice warning">{{ t('Research prototype — review the plan with an agronomist/KVK before buying or applying.', 'शोध प्रोटोटाइप — खरीद या उपयोग से पहले कृषि विशेषज्ञ/KVK से योजना जाँचवाएँ।') }}</div>
+      </fieldset>
+      <div class="form-actions"><button type="button" class="button secondary" data-previous hidden>{{ t('Back', 'पीछे') }}</button><span data-step-status aria-live="polite"></span><button type="button" class="button" data-next hidden>{{ t('Continue', 'आगे') }} →</button><button type="submit" class="button" data-submit>{{ t('Make my plan', 'मेरी योजना बनाएँ') }} ↗</button></div>
+    </form>
+    <aside class="form-aside"><div class="eyebrow">{{ t('WHY FARMERS CAN USE THIS', 'किसान इसे आसानी से क्यों चला सकते हैं') }}</div>
+      <ul class="check-list">
+        <li>{{ t('Only 4 simple inputs needed: Village, Crop, Bigha, Budget', 'केवल 4 आसान बातें: गाँव, फसल, बीघा और बजट') }}</li>
+        <li>{{ t('Microphone 🎤 understands natural Hindi & Hinglish speech', 'माइक 🎤 से सीधे हिंदी या हिंग्लिश में बोलकर भरें') }}</li>
+        <li>{{ t('Soil Health auto-loaded from Village Lab or KVK 6-Block Survey', 'गाँव या KVK के 6-ब्लॉक डेटा से मिट्टी जाँच स्वतः जुड़ती है') }}</li>
+        <li>{{ t('Live Open-Meteo API calculates real-time water depth & litres/bigha', 'लाइव मौसम API से असली पानी की गहराई व लीटर/बीघा') }}</li>
+        <li>{{ t('No technical jargon: pick 5 HP / 7.5 HP tubewell instead of L/s', 'तकनीकी शब्द नहीं: लीटर/सेकंड के बजाय 5 HP / 7.5 HP पंप चुनें') }}</li>
+      </ul>
+      <hr><p>{{ t('Incoming official village soil dataset?', 'गाँव की नई सरकारी मिट्टी जाँच आई है?') }}</p>
+      <a class="text-link" href="{{ url_for('village_soil_hub') }}">{{ t('Open Village Soil Data Hub', 'गाँव मिट्टी डेटाबेस खोलें') }} →</a><br>
+      <a class="text-link" href="{{ url_for('bot_demo') }}">{{ t('Open WhatsApp Bot Demo', 'WhatsApp बॉट डेमो खोलें') }} →</a>
+    </aside>
+  </div>
+</section>
+{% endblock %}

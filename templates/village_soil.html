@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}{{ t('Haridwar–Roorkee Village Soil Data Hub', 'हरिद्वार–रुड़की गाँव मिट्टी डेटाबेस') }}{% endblock %}
+{% block content %}
+<section class="container section">
+  <div class="section-heading">
+    <div>
+      <div class="eyebrow">{{ t('OFFICIAL SOIL INTELLIGENCE HUB', 'आधिकारिक मृदा स्वास्थ्य डेटा केंद्र') }}</div>
+      <h1 class="page-title">{{ t('Village & Block Soil Health Registry', 'गाँव व ब्लॉक मिट्टी जाँच डेटाबेस') }}</h1>
+      <p class="page-intro">{{ t('Jal-Khadd automatically personalises fertilizer doses without forcing farmers to type lab numbers: it checks Tier 1 (Official Village Soil Test Sheets from the Agricultural Testing Official / KVK) first, then falls back to Tier 2 (Published 6-Block Haridwar Survey, n=300).', 'जल-खाद किसान से लैब के कठिन अंक पूछे बिना अपने-आप मिट्टी का डेटा जोड़ता है: पहले स्तर 1 (कृषि परीक्षण अधिकारी / KVK द्वारा जारी गाँव की मिट्टी जाँच) और फिर स्तर 2 (हरिद्वार के 6 ब्लॉकों का प्रकाशित सर्वेक्षण, n=300)।') }}</p>
+    </div>
+    <div class="actions">
+      <a class="button" href="{{ url_for('advisory') }}">{{ t('Build a farmer plan', 'किसान योजना बनाएँ') }} ↗</a>
+    </div>
+  </div>
+
+  {% if error %}<div class="notice danger" role="alert">{{ error }}</div>{% endif %}
+  {% if saved_msg %}<div class="notice" role="status"><strong>✅ {{ saved_msg }}</strong></div>{% endif %}
+
+  <div class="results-grid">
+    <section class="panel">
+      <div class="section-heading compact">
+        <div>
+          <div class="eyebrow">{{ t('TIER 1 · VILLAGE LAB RECORDS', 'स्तर 1 · गाँव की आधिकारिक मिट्टी जाँच') }}</div>
+          <h2>{{ t('Tested Village Profiles (Active Auto-Fill)', 'परीक्षित गाँव प्रोफाइल (स्वतः लागू)') }}</h2>
+        </div>
+        <span class="pill">{{ (uploaded|length) + (baselines.village_overrides|length) }} {{ t('villages', 'गाँव') }}</span>
+      </div>
+      <p class="muted">{{ t('Selecting any of these villages in the Web App or WhatsApp Bot automatically loads these tested soil values.', 'वेब ऐप या WhatsApp बॉट में इनमें से कोई भी गाँव चुनने पर ये परीक्षित मान अपने-आप भर जाते हैं।') }}</p>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ t('Village / Block', 'गाँव / ब्लॉक') }}</th>
+              <th>{{ t('Samples', 'नमूने') }}</th>
+              <th>N (kg/ha)</th>
+              <th>P (kg/ha)</th>
+              <th>K (kg/ha)</th>
+              <th>pH / OC%</th>
+              <th>Zn / S (mg/kg)</th>
+              <th>{{ t('Action', 'उपयोग') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in uploaded %}
+            <tr>
+              <th>{{ v.village_hi if locale == 'hi' and v.village_hi else v.village }} <span class="pill">{{ t('Official Upload', 'नया आधिकारिक डेटा') }}</span><small>{{ v.block }} · {{ v.source }}</small></th>
+              <td>{{ v.samples }}</td>
+              <td>{{ v.N }}</td>
+              <td>{{ v.P }}</td>
+              <td>{{ v.K }}</td>
+              <td>{{ v.ph or '—' }} / {{ v.organic_carbon or '—' }}%</td>
+              <td>{{ v.zinc or '—' }} / {{ v.sulphur or '—' }}</td>
+              <td><a class="text-link" href="{{ url_for('advisory', block=v.block, village=v.village) }}">{{ t('Plan', 'योजना') }} →</a></td>
+            </tr>
+            {% endfor %}
+            {% for v in baselines.village_overrides %}
+            <tr>
+              <th>{{ v.village_hi if locale == 'hi' and v.village_hi else v.village }}<small>{{ v.block }} · {{ v.source }}</small></th>
+              <td>{{ v.samples }}</td>
+              <td>{{ v.N }}</td>
+              <td>{{ v.P }}</td>
+              <td>{{ v.K }}</td>
+              <td>{{ v.ph }} / {{ v.organic_carbon }}%</td>
+              <td>{{ v.zinc }} / {{ v.sulphur }}</td>
+              <td><a class="text-link" href="{{ url_for('advisory', block=v.block, village=v.village) }}">{{ t('Plan', 'योजना') }} →</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="eyebrow">{{ t('UPLOAD OFFICIAL LAB DATA', 'कृषि अधिकारी से प्राप्त डेटा जोड़ें') }}</div>
+      <h2>{{ t('Add / Import Nearby Village Soil Data', 'नए गाँव का मिट्टी डेटा दर्ज करें') }}</h2>
+      <p class="muted">{{ t('Enter a village summary from the Agricultural Testing Official / Soil Testing Lab, or paste multiple sample rows (CSV/Excel) to average them automatically.', 'कृषि परीक्षण अधिकारी / मृदा प्रयोगशाला से प्राप्त गाँव का औसत भरें, या कई किसानों के नमूनों की CSV/Excel पंक्तियाँ पेस्ट करें।') }}</p>
+      <form method="post" action="{{ url_for('village_soil_hub') }}">
+        <input type="hidden" name="csrf" value="{{ csrf }}">
+        <div class="form-grid">
+          <label>{{ t('Block', 'ब्लॉक') }} *<select name="block" required>{% for b in blocks %}<option value="{{ b }}">{{ block_info.blocks[b].hi if locale == 'hi' else b }}</option>{% endfor %}</select></label>
+          <label>{{ t('Village name (English)', 'गाँव का नाम (English)') }}<input name="village" placeholder="e.g. Padarsatha"></label>
+          <label>{{ t('Village name (Hindi)', 'गाँव का नाम (हिंदी)') }}<input name="village_hi" placeholder="जैसे पदरसाथा"></label>
+          <label>{{ t('Soil texture', 'मिट्टी का प्रकार') }}<select name="texture">{% for val,label in [('sandy-loam',t('Sandy loam','बलुई दोमट')),('loam',t('Loam','दोमट')),('clay-loam',t('Clay loam','चिकनी दोमट')),('sandy',t('Sandy','रेतीली')),('clay',t('Clay','चिकनी'))] %}<option value="{{ val }}">{{ label }}</option>{% endfor %}</select></label>
+          <label>N (kg/ha)<input type="number" name="N" min="0" max="2000" step="0.1" placeholder="185"></label>
+          <label>P (kg/ha)<input type="number" name="P" min="0" max="2000" step="0.1" placeholder="35"></label>
+          <label>K (kg/ha)<input type="number" name="K" min="0" max="3000" step="0.1" placeholder="245"></label>
+          <label>pH<input type="number" name="ph" min="0" max="14" step="0.01" placeholder="7.4"></label>
+          <label>{{ t('Organic Carbon %', 'जैविक कार्बन %') }}<input type="number" name="organic_carbon" min="0" max="20" step="0.01" placeholder="0.60"></label>
+          <label>{{ t('Zinc Zn (mg/kg)', 'जिंक Zn (mg/kg)') }}<input type="number" name="zinc" min="0" max="100" step="0.01" placeholder="0.85"></label>
+          <label>{{ t('Sulphur S (mg/kg)', 'गंधक S (mg/kg)') }}<input type="number" name="sulphur" min="0" max="500" step="0.1" placeholder="13.5"></label>
+          <label>{{ t('Samples tested (n)', 'नमूनों की संख्या (n)') }}<input type="number" name="samples" min="1" max="5000" value="15"></label>
+          <label class="span-2">{{ t('Official Source / Lab Attribution', 'आधिकारिक स्रोत / प्रयोगशाला का नाम') }}<input name="source" value="District Soil Testing Lab Bahadrabad / CAO Haridwar"></label>
+        </div>
+        <details class="inline-details">
+          <summary>{{ t('Or paste multi-row CSV / Excel table from lab official', 'या प्रयोगशाला की CSV / Excel तालिका यहाँ पेस्ट करें') }}</summary>
+          <label>{{ t('CSV/TSV rows (header: block,village,village_hi,N,P,K,ph,organic_carbon,zinc,sulphur)', 'CSV पंक्तियाँ पेस्ट करें') }}
+            <textarea name="csv_rows" rows="4" placeholder="block,village,village_hi,N,P,K,ph,organic_carbon,zinc,sulphur&#10;Roorkee,Padarsatha,पदरसाथा,176,34,240,7.3,0.55,0.52,12.4"></textarea>
+          </label>
+        </details>
+        <button class="button" type="submit">{{ t('Save Official Village Soil Data', 'गाँव का आधिकारिक डेटा सहेजें') }} →</button>
+      </form>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="section-heading compact">
+      <div>
+        <div class="eyebrow">{{ t('TIER 2 · PUBLISHED 6-BLOCK HARIDWAR BASELINE', 'स्तर 2 · हरिद्वार के 6 ब्लॉकों का प्रकाशित डेटा') }}</div>
+        <h2>{{ t('6 Blocks of Haridwar District (Pachauri et al. 2023, GBPUAT Pantnagar & KVK Dhanauri, n=300)', 'हरिद्वार जिले के 6 ब्लॉक (पचौरी आदि 2023, GBPUAT पंतनगर व KVK धनौरी, n=300)') }}</h2>
+      </div>
+      <span class="pill">{{ t('3 Core Roorkee Belt + 3 District Blocks', '3 मुख्य रुड़की बेल्ट + 3 अन्य ब्लॉक') }}</span>
+    </div>
+    <p class="muted">{{ baselines.source }}</p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>{{ t('Block', 'ब्लॉक') }}</th>
+            <th>{{ t('Samples', 'नमूने') }}</th>
+            <th>N (kg/ha)</th>
+            <th>P (kg/ha)</th>
+            <th>K (kg/ha)</th>
+            <th>pH / EC</th>
+            <th>OC %</th>
+            <th>S / Zn / Fe (mg/kg)</th>
+            <th>{{ t('Published Finding (% Deficient)', 'मुख्य निष्कर्ष (% कमी)') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b_name, b in baselines.block_baselines.items() %}
+          <tr>
+            <th>
+              {{ b.block_hi if locale == 'hi' else b.block }}
+              {% if b_name in baselines.focus_blocks %}<span class="pill">{{ t('Core Belt', 'मुख्य बेल्ट') }}</span>{% endif %}
+            </th>
+            <td>{{ b.samples }}</td>
+            <td><strong>{{ b.N }}</strong> <span class="risk high">{{ b.low_pct.N }}% Low</span></td>
+            <td><strong>{{ b.P }}</strong> <span class="risk lower">High</span></td>
+            <td>{{ b.K }}</td>
+            <td>{{ b.ph }} / {{ b.ec }}</td>
+            <td>{{ b.organic_carbon }}%</td>
+            <td>{{ b.sulphur }} / {{ b.zinc }} / {{ b.iron }}</td>
+            <td>{{ b['summary_' ~ locale] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>
+{% endblock %}

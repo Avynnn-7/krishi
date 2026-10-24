@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Intercrop lab') }}{% endblock %}
+{% block content %}
+<section class="container section"><div class="eyebrow">{{ t('EXPLORE THE TRADE-OFFS', 'लाभ-हानि की तुलना') }}</div><h1 class="page-title">{{ t('A little diversity. A different ledger.', 'फसल में विविधता। आय का नया हिसाब।') }}</h1><p class="page-intro">{{ t('Sugarcane monoculture vs. sugarcane + moong. Change the assumptions to explore a scenario, not a forecast.', 'केवल गन्ना बनाम गन्ना + मूंग। मान्यताएँ बदलकर उदाहरण तुलना करें, भविष्यवाणी नहीं।') }}</p><div class="notice warning">{{ t('All defaults are illustrative. Biological nitrogen fixation is not an automatic same-season fertilizer credit. Nitrogen credit starts at zero; change only with expert evidence.', 'सभी शुरुआती मान उदाहरण हैं। जैविक N स्थिरीकरण से इसी मौसम में खाद की स्वतः बचत नहीं मानी जाती। N छूट शून्य है; विशेषज्ञ प्रमाण पर ही बदलें।') }}</div>
+{% if error %}<div class="notice danger" role="alert">{{ error }}</div>{% endif %}
+<div class="form-layout"><form method="post" class="panel"><input type="hidden" name="csrf" value="{{ csrf }}"><h2>{{ t('Your assumptions', 'आपकी मान्यताएँ') }}</h2><p class="muted">{{ t('All costs and revenues are per hectare unless noted.', 'सभी लागत और आय प्रति हेक्टेयर, जहाँ अलग न लिखा हो।') }}</p><div class="form-grid">
+{% for key,label,minimum,maximum in [
+('area_ha',t('Total area (ha)','कुल क्षेत्र (ha)'),0.01,100),
+('main_revenue',t('Sugarcane gross revenue (₹/ha)','गन्ना कुल आय (₹/ha)'),0,10000000),
+('main_cost',t('Sugarcane total cost (₹/ha)','गन्ना कुल लागत (₹/ha)'),0,10000000),
+('intercrop_yield',t('Moong harvest (quintals/ha)','मूंग उपज (क्विंटल/ha)'),0,100),
+('intercrop_price',t('Moong price (₹/quintal)','मूंग भाव (₹/क्विंटल)'),0,100000),
+('added_cost',t('Extra seed + labour cost (₹/ha)','अतिरिक्त बीज + श्रम (₹/ha)'),0,1000000),
+('main_revenue_loss_pct',t('Sugarcane revenue reduction (%)','गन्ना आय में कमी (%)'),0,100),
+('credited_n',t('Expert-approved N credit (kg/ha)','विशेषज्ञ अनुमोदित N छूट (kg/ha)'),0,60)
+] %}<label>{{ label }}<input type="number" name="{{ key }}" value="{{ values[key] }}" min="{{ minimum }}" max="{{ maximum }}" step="0.01" required></label>{% endfor %}</div><button class="button">{{ t('Compare scenarios', 'उदाहरणों की तुलना करें') }} →</button></form>
+<aside>{% if output %}<div class="panel"><div class="eyebrow">{{ t('ILLUSTRATIVE SEASONAL NET RETURN', 'उदाहरण मौसमी शुद्ध आय') }}</div><div class="scenario-row"><span>{{ t('Sugarcane only', 'केवल गन्ना') }}</span><strong>₹{{ '%.0f'|format(output.monoculture_profit) }}</strong></div><div class="scenario-row highlighted"><span>{{ t('Sugarcane + moong', 'गन्ना + मूंग') }}</span><strong>₹{{ '%.0f'|format(output.intercrop_profit) }}</strong></div><div class="comparison-value">₹{{ '%.0f'|format(output.difference) }}</div><p>{{ t('Difference across your full area', 'आपके पूरे क्षेत्र का अंतर') }}</p><hr><dl class="ledger"><dt>{{ t('Added crop revenue', 'अतिरिक्त फसल आय') }}</dt><dd>₹{{ '%.0f'|format(output.extra_revenue) }}</dd><dt>{{ t('Added costs', 'अतिरिक्त लागत') }}</dt><dd>− ₹{{ '%.0f'|format(output.added_cost) }}</dd><dt>{{ t('Sugarcane revenue loss', 'गन्ना आय में कमी') }}</dt><dd>− ₹{{ '%.0f'|format(output.main_loss) }}</dd><dt>{{ t('Modeled fertilizer credit', 'गणना में खाद छूट') }}</dt><dd>₹{{ '%.0f'|format(output.fertilizer_saving) }}</dd></dl><p class="notice">{{ t('Break-even moong yield', 'लागत बराबर करने की मूंग उपज') }}: {{ ('%.2f'|format(output.break_even_yield) ~ ' q/ha') if output.break_even_yield is not none else t('Undefined at zero selling price', 'शून्य भाव पर अपरिभाषित') }}</p></div>{% endif %}</aside></div></section>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{{ _('Field assistant') }}{% endblock %}
+{% block content %}
+<section class="container section">
+  <div class="bot-layout">
+    <div>
+      <div class="eyebrow">{{ t('WHATSAPP BOT DEMO STUDIO', 'WHATSAPP बॉट डेमो स्टूडियो') }}</div>
+      <h1 class="page-title">{{ t('Meet your field assistant.', 'खेत सहायक से मिलें।') }}</h1>
+      <p class="lead">{{ t('Designed for real farmers: tap numbered options, speak in Hindi with the microphone, or type a single sentence. Soil health, GPS coordinates, and live Open-Meteo irrigation water are fetched automatically.', 'किसानों की सुविधा के लिए: नंबर वाले बटन दबाएँ, माइक 🎤 से हिंदी में बोलें, या एक ही वाक्य लिखें। मिट्टी की जाँच, GPS और लाइव मौसम से पानी की मात्रा अपने-आप जुड़ती है।') }}</p>
+
+      <div class="panel telemetry-panel" id="bot-telemetry">
+        <div class="eyebrow">{{ t('AUTO-FETCHED BY API (ZERO FARMER TYPING)', 'API द्वारा स्वतः प्राप्त डेटा (किसान को भरना नहीं पड़ता)') }}</div>
+        {% if autofill %}
+        <div class="telemetry-grid">
+          <div>
+            <small>📍 {{ t('Location & GPS', 'गाँव व GPS') }}</small>
+            <strong id="tel-loc">{{ autofill.location.village_hi if locale == 'hi' else autofill.location.village }} ({{ autofill.location.block }})</strong>
+            <span class="muted" id="tel-gps">{{ autofill.location.latitude }}, {{ autofill.location.longitude }} · {{ autofill.texture }}</span>
+          </div>
+          <div>
+            <small>🧪 {{ t('Auto Soil Profile', 'स्वचालित मिट्टी डेटा') }}</small>
+            <strong id="tel-soil-tier">{{ autofill.soil_profile.tier_label_hi if locale == 'hi' else autofill.soil_profile.tier_label_en }}</strong>
+            <span class="muted" id="tel-soil-npk">N {{ autofill.soil_profile.soil.N }} · P {{ autofill.soil_profile.soil.P }} · K {{ autofill.soil_profile.soil.K }} kg/ha · pH {{ autofill.soil_profile.soil.ph }} · Zn {{ autofill.soil_profile.soil.zinc }}</span>
+          </div>
+          <div>
+            <small>🌦️ {{ t('Live Meteorological Water API', 'लाइव मौसम व सिंचाई API') }}</small>
+            <strong id="tel-water">~{{ autofill.realtime_water.gross_cm }} cm ({{ '{:,}'.format(autofill.realtime_water.litres_per_bigha) }} L/bigha)</strong>
+            <span class="muted" id="tel-et">7d ET₀ {{ autofill.realtime_water.et0_7d_mm }} mm · Rain {{ autofill.realtime_water.rain_7d_mm }} mm</span>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="panel">
+        <strong>🎤 {{ t('1-Click Voice / Sentence Demo (Speak or Tap)', 'बोलकर या 1-क्लिक में पूरी सलाह आज़माएँ') }}</strong>
+        <p class="muted">{{ t('Use the mic button in the chat or click a sample spoken sentence below to see the bot decipher everything at once:', 'चैट में 🎤 माइक दबाकर बोलें या नीचे दिए गए किसान वाक्य पर क्लिक करें:') }}</p>
+        <div class="chip-row">
+          <button type="button" class="chip" data-voice-sample="रुड़की के ढंडेरा गाँव में 5 बीघा गेहूं बोना है बजट 2500 रुपये">🗣️ "रुड़की के ढंडेरा गाँव में 5 बीघा गेहूं, बजट 2500"</button>
+          <button type="button" class="chip" data-voice-sample="भगवानपुर के चूड़ियाला में 10 बीघा गन्ना बजट 5000">🗣️ "भगवानपुर के चूड़ियाला में 10 बीघा गन्ना, बजट 5000"</button>
+          <button type="button" class="chip" data-voice-sample="लक्सर के सुल्तानपुर में 1 एकड़ धान बजट 3000">🗣️ "लक्सर के सुल्तानपुर में 1 एकड़ धान, बजट 3000"</button>
+        </div>
+      </div>
+
+      <div class="notice">
+        <strong>{{ t('Local simulator + Production Webhook Ready', 'स्थानीय सिमुलेटर + WhatsApp Webhook तैयार') }}</strong>
+        <p>{{ t('This simulator runs the exact same state machine and Hindi formatter as /webhook/whatsapp and /webhook/twilio.', 'यह सिमुलेटर /webhook/whatsapp और /webhook/twilio के समान ही इंजन चलाता है।') }}</p>
+      </div>
+    </div>
+
+    <section class="chat-shell" aria-label="Hindi field assistant">
+      <div class="chat-header">
+        <span class="brand-mark">ज</span>
+        <div>
+          <strong>जल-खाद सहायक (WhatsApp Bot)</strong>
+          <small id="voice-status">{{ t('Tap an option, speak 🎤, or type', 'बटन दबाएँ, माइक 🎤 से बोलें, या लिखें') }}</small>
+        </div>
+        <button type="button" class="button light small" id="bot-gps-btn" title="Auto-detect GPS">📍 GPS</button>
+      </div>
+      <div id="chat-log" class="chat-log" role="log" aria-live="polite">
+        <div class="chat-message assistant">{{ prompt }}</div>
+      </div>
+      <div id="chat-options" class="chat-options" aria-label="Quick reply options">
+        {% for opt in options %}
+        <button type="button" class="chip" data-chat-option="{{ opt.value }}">{{ opt.label }}</button>
+        {% endfor %}
+      </div>
+      <form id="chat-form" class="chat-input">
+        <label class="sr-only" for="chat-text">{{ t('Your message', 'आपका संदेश') }}</label>
+        <button class="button secondary mic-btn" type="button" id="bot-mic-btn" title="{{ t('Speak in Hindi/English', 'बोलकर लिखें') }}" aria-label="{{ t('Voice input', 'बोलकर लिखें') }}">🎤</button>
+        <input id="chat-text" name="text" placeholder="नमस्ते / नंबर चुनें / माइक 🎤 से बोलें" maxlength="2000" required autocomplete="off">
+        <button class="button" type="submit">{{ t('Send', 'भेजें') }} →</button>
+      </form>
+      <p class="chat-disclaimer">{{ t('Voice input uses browser Hindi speech recognition + Jal-Khadd NLU. Type restart, STOP or DELETE anytime.', 'माइक हिंदी/हिंग्लिश आवाज़ पहचानता है। कभी भी restart, STOP या DELETE लिखें।') }}</p>
+    </section>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,11 @@
+{
+  "source": "Reference retail prices compiled 22 Oct 2026: Urea/DAP fixed MRP (Kharif 2026 lists); MOP, NPK 12:32:16 and 10:26:26 are FAI 2025-26 average MRPs; SSP granulated from Kharif 2026 state lists. Prices differ by company/state. Edit them to your dealer bill.",
+  "products": [
+    {"id": "urea", "name": "Urea", "name_hi": "यूरिया", "weight_kg": 45, "price_rs": 266.5, "N": 0.46, "P2O5": 0, "K2O": 0, "S": 0},
+    {"id": "dap", "name": "DAP", "name_hi": "डीएपी", "weight_kg": 50, "price_rs": 1350, "N": 0.18, "P2O5": 0.46, "K2O": 0, "S": 0},
+    {"id": "mop", "name": "MOP (Potash)", "name_hi": "एमओपी (पोटाश)", "weight_kg": 50, "price_rs": 1710.54, "N": 0, "P2O5": 0, "K2O": 0.60, "S": 0},
+    {"id": "ssp", "name": "SSP (granulated)", "name_hi": "सिंगल सुपर फॉस्फेट", "weight_kg": 50, "price_rs": 591, "N": 0, "P2O5": 0.16, "K2O": 0, "S": 0.11},
+    {"id": "npk_12_32_16", "name": "NPK 12:32:16", "name_hi": "एनपीके 12:32:16", "weight_kg": 50, "price_rs": 1711.87, "N": 0.12, "P2O5": 0.32, "K2O": 0.16, "S": 0},
+    {"id": "npk_10_26_26", "name": "NPK 10:26:26", "name_hi": "एनपीके 10:26:26", "weight_kg": 50, "price_rs": 1814.82, "N": 0.10, "P2O5": 0.26, "K2O": 0.26, "S": 0}
+  ]
+}

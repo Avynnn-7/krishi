@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: jal-khadd
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt && pybabel compile -d translations
+    startCommand: gunicorn 'app:create_app()' --bind 0.0.0.0:$PORT --workers 1 --timeout 90
+    healthCheckPath: /health
+    disk:
+      name: jal-khadd-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.14
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_PATH
+        value: /var/data/jalkhadd.db
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: WEATHER_ENABLED
+        value: "false"

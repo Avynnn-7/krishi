@@ -1,0 +1,73 @@
+{
+  "source": "Computed from Open-Meteo Historical Weather API (ERA5-based reanalysis), daily FAO-56 reference evapotranspiration and precipitation, 2015-01-01 to 2024-12-31.",
+  "location": {
+    "name": "Roorkee belt (Haridwar)",
+    "latitude": 29.841827,
+    "longitude": 77.860466,
+    "elevation_m": 273.0
+  },
+  "retrieved": "2026-10-22",
+  "note": "Climatological means smooth real weather. Use only for planning; check current soil moisture and forecasts.",
+  "months": [
+    {
+      "month": 1,
+      "et0_mm_day": 1.97,
+      "rain_mm": 61.2
+    },
+    {
+      "month": 2,
+      "et0_mm_day": 3.05,
+      "rain_mm": 44.0
+    },
+    {
+      "month": 3,
+      "et0_mm_day": 4.53,
+      "rain_mm": 55.4
+    },
+    {
+      "month": 4,
+      "et0_mm_day": 6.3,
+      "rain_mm": 18.9
+    },
+    {
+      "month": 5,
+      "et0_mm_day": 6.57,
+      "rain_mm": 42.9
+    },
+    {
+      "month": 6,
+      "et0_mm_day": 6.12,
+      "rain_mm": 90.8
+    },
+    {
+      "month": 7,
+      "et0_mm_day": 3.88,
+      "rain_mm": 324.7
+    },
+    {
+      "month": 8,
+      "et0_mm_day": 3.68,
+      "rain_mm": 232.0
+    },
+    {
+      "month": 9,
+      "et0_mm_day": 3.8,
+      "rain_mm": 151.7
+    },
+    {
+      "month": 10,
+      "et0_mm_day": 3.67,
+      "rain_mm": 24.4
+    },
+    {
+      "month": 11,
+      "et0_mm_day": 2.73,
+      "rain_mm": 5.7
+    },
+    {
+      "month": 12,
+      "et0_mm_day": 2.05,
+      "rain_mm": 16.6
+    }
+  ]
+}

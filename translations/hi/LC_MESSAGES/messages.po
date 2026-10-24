@@ -1,0 +1,26 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Jal-Khadd 0.1\n"
+"Language: hi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Plan your inputs"
+msgstr "खाद की योजना"
+
+msgid "Intercrop lab"
+msgstr "अंतरफसल तुलना"
+
+msgid "Field assistant"
+msgstr "खेत सहायक"
+
+msgid "Saved reports"
+msgstr "सहेजी रिपोर्ट"
+
+msgid "Methods & data"
+msgstr "विधि और डेटा"
+
+msgid "Build a field plan"
+msgstr "खेत की योजना बनाएँ"

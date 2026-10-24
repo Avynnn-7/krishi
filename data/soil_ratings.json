@@ -1,0 +1,23 @@
+{
+  "source": "Commonly used Indian soil-test ratings: available N (alkaline KMnO4, Subbiah & Asija), Olsen P, NH4OAc K, Walkley-Black OC; DTPA micronutrient critical limits (Lindsay & Norvell); hot-water B; CaCl2-extractable S; pH and EC classes (TNAU soil rating chart). Laboratories and states may use other methods/limits: the printed card rating takes precedence.",
+  "dose_adjustment": {"low": 1.25, "medium": 1.0, "high": 0.75},
+  "dose_adjustment_source": "Soil-test-rating approach: 125% / 100% / 75% of the general recommendation for low / medium / high soils.",
+  "macro": {
+    "N": {"unit": "kg/ha", "low": 280, "high": 560, "basis": "N"},
+    "P": {"unit": "kg/ha", "low": 10, "high": 25, "basis": "elemental P (Olsen)"},
+    "K": {"unit": "kg/ha", "low": 110, "high": 280, "basis": "elemental K (NH4OAc)"},
+    "organic_carbon": {"unit": "%", "low": 0.5, "high": 0.75}
+  },
+  "micro": {
+    "sulphur": {"unit": "mg/kg", "critical": 10},
+    "zinc": {"unit": "mg/kg", "critical": 0.6},
+    "iron": {"unit": "mg/kg", "critical": 4.5},
+    "manganese": {"unit": "mg/kg", "critical": 2.0},
+    "copper": {"unit": "mg/kg", "critical": 0.2},
+    "boron": {"unit": "mg/kg", "critical": 0.5}
+  },
+  "fym": {
+    "source": "Typical well-rotted FYM ~0.5% N, 0.25% P2O5, 0.5% K2O; first-season availability assumed 30% N, 50% P2O5, 70% K2O (conservative IPNS approximation).",
+    "credit_kg_per_t": {"N": 1.5, "P2O5": 1.25, "K2O": 3.5}
+  }
+}

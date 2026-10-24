@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ t('Your field report', 'खेत की रिपोर्ट') }}{% endblock %}
+{% block content %}
+{% set plan = report.plan %}{% set water = report.water %}{% set L = locale %}
+<section class="container section">
+  <div class="section-heading"><div><div class="eyebrow">{{ t('YOUR FIELD NOTEBOOK', 'खेत की नोटबुक') }}</div><h1 class="page-title">{{ report.inputs.village }}<span class="muted"> / {{ {'wheat': t('Wheat','गेहूं'), 'sugarcane': t('Sugarcane','गन्ना'), 'rice': t('Rice','धान'), 'maize': t('Maize','मक्का')}[report.inputs.crop] }}</span></h1><p class="muted">{{ report.inputs.block }} · {{ '%.3f'|format(report.area_ha) }} ha{% if report.inputs.area_unit != 'ha' %} ({{ report.inputs.area }} {{ report.inputs.area_unit }}){% endif %} · {{ t('Sown', 'बुवाई') }} {{ report.inputs.sowing_date }}</p></div>
+    <div class="actions"><a class="button" href="{{ url_for('pdf', report_id=report.id, lang=locale) }}">{{ t('Download PDF', 'PDF डाउनलोड') }} ↓</a><a class="button secondary" href="{{ url_for('calendar', report_id=report.id) }}">{{ t('Save calendar', 'कैलेंडर सहेजें') }}</a><a class="button secondary" href="{{ url_for('advisory', **{'from': report.id}) }}">{{ t('Edit & recalculate', 'बदलें और फिर गणना') }}</a></div></div>
+  <div class="notice warning"><strong>{{ t('Prototype — expert review required', 'प्रोटोटाइप — विशेषज्ञ की जाँच जरूरी') }}</strong><p>{{ t('Check this plan with KVK/an agronomist before buying or applying. Bought bags and applied kilograms are different.', 'खरीद या उपयोग से पहले KVK/कृषि विशेषज्ञ से जाँच कराएँ। खरीदी बोरियाँ और डाली जाने वाली मात्रा अलग हैं।') }}</p><small>{{ report.method }}</small></div>
+
+  {% if report.recommendations %}
+  <section class="panel action-plan"><div class="section-heading compact"><div><div class="eyebrow">{{ t('START HERE', 'यहाँ से शुरू करें') }}</div><h2>{{ t('Your personal action plan', 'आपकी व्यक्तिगत कार्य-योजना') }}</h2></div><span class="pill">{{ report.recommendations|length }} {{ t('actions', 'सुझाव') }}</span></div>
+    <ol class="rec-list">{% for item in report.recommendations %}<li class="rec p{{ item.priority }}"><span class="rec-tag {{ item.category }}">{{ {'soil': t('Soil','मिट्टी'), 'money': t('Money','पैसा'), 'timing': t('Timing','समय'), 'water': t('Water','पानी'), 'fertilizer': t('Fertilizer','खाद')}[item.category] }}{% if item.priority == 1 %} · {{ t('High priority', 'सबसे ज़रूरी') }}{% endif %}</span><strong>{{ item['title_' ~ L] }}</strong><p>{{ item['detail_' ~ L] }}</p></li>{% endfor %}</ol>
+  </section>
+  {% endif %}
+
+  <div class="stat-grid four"><div class="stat"><span>{{ t('Fertilizer cost', 'खाद खर्च') }}</span><strong>₹{{ '{:,.0f}'.format(plan.total_cost) }}</strong><small>{{ t('Budget', 'बजट') }} ₹{{ '{:,.0f}'.format(report.inputs.budget) }}</small></div><div class="stat"><span>{{ t('Nutrient coverage (lowest)', 'पोषक पूर्ति (न्यूनतम)') }}</span><strong>{{ '%.0f'|format(plan.minimum_coverage*100) }}<small>%</small></strong><small>{{ t('Not a yield prediction', 'उपज का अनुमान नहीं') }}</small></div><div class="stat"><span>{{ t('Irrigations', 'सिंचाइयाँ') }}</span><strong>{{ water.season.count }}</strong><small>~{{ water.season.gross_cm }} cm {{ t('in total', 'कुल') }}</small></div><div class="stat"><span>{{ t('Season water', 'मौसम का पानी') }}</span><strong>{{ '{:,.0f}'.format(water.season.volume_m3) }}<small> m³</small></strong><small>{% if water.season.pump_hours %}~{{ '%.0f'|format(water.season.pump_hours) }} {{ t('pump hours', 'पंप घंटे') }}{% else %}{{ '{:,}'.format(water.season.litres) }} {{ t('litres', 'लीटर') }}{% endif %}</small></div></div>
+
+  {% if report.soil_report %}{% set soil = report.soil_report %}
+  <section class="panel"><div class="section-heading compact"><div><div class="eyebrow">{{ t('SOIL HEALTH CARD, EXPLAINED', 'मृदा स्वास्थ्य कार्ड का मतलब') }}</div><h2>{{ t('What your soil is saying', 'आपकी मिट्टी क्या कहती है') }}</h2>{% if report.soil_origin %}<p class="muted"><small>🧪 <strong>{{ report.soil_origin['label_' ~ L] }}</strong></small></p>{% endif %}</div>{% if soil.attention_count %}<span class="risk high">{{ soil.attention_count }} {{ t('need attention', 'पर ध्यान दें') }}</span>{% endif %}</div>
+    {% include "_soil_items.html" %}
+  </section>
+  {% endif %}
+
+  <div class="results-grid">
+    <section class="panel"><div class="section-heading compact"><h2>{{ t('Your shopping list', 'खरीदारी सूची') }}</h2><span class="pill">{{ t('Whole bags', 'पूरी बोरियाँ') }}</span></div>
+      <div class="table-scroll"><table><thead><tr><th>{{ t('Product', 'खाद') }}</th><th>{{ t('Bags', 'बोरी') }}</th><th>{{ t('Cost', 'खर्च') }}</th><th>{{ t('Apply kg', 'डालें kg') }}</th><th>{{ t('Left over kg', 'बचेगा kg') }}</th></tr></thead><tbody>{% for row in plan.shopping if row.bags %}<tr><th>{{ row.product_hi if L == 'hi' else row.product }}<small>₹{{ '%.2f'|format(row.price_rs) }} / {{ row.bag_weight_kg|int }} kg</small></th><td>{{ row.bags }}</td><td>₹{{ '{:,.0f}'.format(row.cost) }}</td><td>{{ '%.1f'|format(row.apply_kg) }}</td><td>{{ '%.1f'|format(row.leftover_kg) }}</td></tr>{% else %}<tr><td colspan="5">{{ t('No fertilizer purchase needed or budget is zero.', 'खाद खरीदने की ज़रूरत नहीं या बजट शून्य।') }}</td></tr>{% endfor %}</tbody><tfoot><tr><th colspan="2">{{ t('Total', 'कुल') }}</th><td colspan="3">₹{{ '{:,.2f}'.format(plan.total_cost) }}</td></tr></tfoot></table></div>
+      {% if report.soil_report and report.soil_report.amendments %}<h3>{{ t('Also needed (not in budget)', 'इसके अलावा ज़रूरी (बजट में शामिल नहीं)') }}</h3><ul class="compact-notes">{% for a in report.soil_report.amendments %}<li><strong>{{ a['product_' ~ L] }}</strong>{% if a.kg_field %} — {{ a.kg_field }} kg{% endif %}</li>{% endfor %}</ul>{% endif %}
+    </section>
+    <section class="panel nutrient-panel"><h2>{{ t('How the dose was set', 'मात्रा कैसे तय हुई') }}</h2>
+      {% set b = report.breakdown %}
+      <div class="table-scroll"><table class="dense"><thead><tr><th></th><th>N</th><th>P₂O₅</th><th>K₂O</th></tr></thead><tbody>
+        <tr><th>{{ t('Base (kg/ha)', 'आधार (kg/हे.)') }}</th>{% for n in ['N','P2O5','K2O'] %}<td>{{ '%.0f'|format(b.base_per_ha[n]) }}</td>{% endfor %}</tr>
+        {% if b.ratings %}<tr><th>{{ t('Soil rating', 'मिट्टी रेटिंग') }}</th>{% for n in ['N','P2O5','K2O'] %}<td>{{ {'low': t('Low','कम'), 'medium': t('Medium','मध्यम'), 'high': t('High','अधिक')}[b.ratings[n]] }} ×{{ b.factors[n] }}</td>{% endfor %}</tr>{% endif %}
+        {% if b.fym_credit_per_ha.N %}<tr><th>{{ t('FYM credit', 'गोबर खाद छूट') }}</th>{% for n in ['N','P2O5','K2O'] %}<td>−{{ '%.1f'|format(b.fym_credit_per_ha[n]) }}</td>{% endfor %}</tr>{% endif %}
+        <tr><th>{{ t('Need (kg/ha)', 'ज़रूरत (kg/हे.)') }}</th>{% for n in ['N','P2O5','K2O'] %}<td><strong>{{ '%.0f'|format(b.per_ha[n]) }}</strong></td>{% endfor %}</tr>
+      </tbody></table></div>
+      {% for n in ['N','P2O5','K2O'] %}<div class="nutrient"><div><strong>{{ n }}</strong><span>{{ '%.1f'|format(plan.delivered[n]) }} / {{ '%.1f'|format(plan.required[n]) }} kg</span></div><progress value="{{ plan.coverage[n] }}" max="1" aria-label="{{ n }} coverage"></progress>{% if plan.shortfall[n] > 0.05 %}<small>{{ t('Shortfall', 'कमी') }} {{ '%.1f'|format(plan.shortfall[n]) }} kg</small>{% endif %}</div>{% endfor %}
+    </section>
+  </div>
+
+  {% if report.practice %}{% set pr = report.practice %}
+  <section class="panel"><div class="section-heading compact"><div><div class="eyebrow">{{ t('HABIT CHECK', 'आदत की जाँच') }}</div><h2>{{ t('Your usual practice vs. what the field needs', 'आपकी सामान्य आदत बनाम खेत की ज़रूरत') }}</h2></div></div>
+    <div class="table-scroll"><table><thead><tr><th></th><th>N (kg)</th><th>P₂O₅ (kg)</th><th>K₂O (kg)</th><th>{{ t('Cost', 'खर्च') }}</th></tr></thead><tbody>
+      <tr><th>{{ t('Usual', 'सामान्य') }}<small>{% for r in pr.rows %}{{ r.bags }} × {{ r.product_hi if L == 'hi' else r.product }}{% if not loop.last %}, {% endif %}{% endfor %}</small></th>{% for n in ['N','P2O5','K2O'] %}<td>{{ '%.0f'|format(pr.nutrients[n]) }}</td>{% endfor %}<td>₹{{ '{:,.0f}'.format(pr.cost) }}</td></tr>
+      <tr><th>{{ t('Needed', 'ज़रूरत') }}</th>{% for n in ['N','P2O5','K2O'] %}<td>{{ '%.0f'|format(plan.required[n]) }}</td>{% endfor %}<td>—</td></tr>
+      <tr><th>{{ t('This plan', 'यह योजना') }}</th>{% for n in ['N','P2O5','K2O'] %}<td>{{ '%.0f'|format(plan.delivered[n]) }}</td>{% endfor %}<td>₹{{ '{:,.0f}'.format(plan.total_cost) }}</td></tr>
+      <tr class="diff-row"><th>{{ t('Usual minus need', 'सामान्य − ज़रूरत') }}</th>{% for n in ['N','P2O5','K2O'] %}{% set d = pr.difference[n] %}<td class="{{ 'over' if d > 5 else 'under' if d < -5 else '' }}">{{ '%+.0f'|format(d) }}</td>{% endfor %}<td class="{{ 'over' if report.cost_difference > 0 else '' }}">{{ '%+.0f'|format(report.cost_difference) }}</td></tr>
+    </tbody></table></div>
+    <p class="muted">{{ t('Positive = more than needed (wasted money, losses to water/air). Negative = less than needed (may limit yield).', 'धनात्मक = ज़रूरत से ज़्यादा (पैसे की बर्बादी, पानी/हवा में नुकसान)। ऋणात्मक = ज़रूरत से कम (उपज घट सकती है)।') }}</p>
+  </section>
+  {% endif %}
+
+  <section class="panel calendar-panel"><div class="section-heading compact"><div><div class="eyebrow">{{ t('TIMING MATTERS', 'समय ज़रूरी है') }}</div><h2>{{ t('When to apply fertilizer', 'खाद कब डालें') }}</h2></div><span class="pill">IST</span></div>
+    <div class="timeline">{% for stage in report.schedule %}<article class="timeline-item"><span class="timeline-number">{{ loop.index }}</span><div><div class="stage-heading"><h3>{{ stage.stage_hi if L == 'hi' and stage.stage_hi else stage.stage }}</h3><span class="risk {{ stage.risk }}">{{ t({'high':'HOLD · Heavy rain','unknown':'Check weather','lower':'Lower rain risk'}[stage.risk], {'high':'रोकें · भारी वर्षा','unknown':'मौसम जाँचें','lower':'कम वर्षा जोखिम'}[stage.risk]) }}</span></div><p class="stage-date">{{ stage.start[:10] }} · {{ stage.start[11:16] }}–{{ stage.end[11:16] }} <span class="muted">/ {{ stage.dap }} {{ t('days after sowing', 'दिन बुवाई बाद') }}</span></p><div class="dose-tags">{% for product,kg in ((stage.allocations_hi if L == 'hi' and stage.allocations_hi else stage.allocations).items()) %}<span>{{ product }} <strong>{{ '%.1f'|format(kg) }} kg</strong></span>{% else %}<span>{{ t('No fertilizer', 'खाद नहीं') }}</span>{% endfor %}</div>{% if stage.irrigation %}<p>{{ t('Your water turn', 'आपकी पानी की बारी') }}: {{ stage.irrigation[:16]|replace('T',' ') }}</p>{% endif %}<details><summary>{{ t('Notes', 'टिप्पणियाँ') }}</summary><ul class="compact-notes">{% for note in stage.notes %}<li>{{ note }}</li>{% endfor %}</ul></details></div></article>{% endfor %}</div>
+  </section>
+
+  <section class="panel" id="water"><div class="section-heading compact"><div><div class="eyebrow">{{ t('WATER PLAN', 'सिंचाई योजना') }}</div><h2>{{ t('How much water, how deep, and when', 'कितना पानी, कितनी गहराई, कब') }}</h2></div><span class="pill">{{ water['method_' ~ L] }}</span></div>
+    {% include "_water_plan.html" %}
+  </section>
+
+  <div class="results-grid">
+    <section class="panel"><h2>{{ t('Weather check', 'मौसम जाँच') }}</h2>{% if report.weather.status == 'live' %}<p class="muted">{{ report.weather.source }} · {{ report.weather.fetched_at[:16] }} UTC</p><div class="weather-days">{% for day in report.weather.days %}<div class="{{ 'wet' if day.rain_mm >= 10 else '' }}"><small>{{ day.date[5:] }}</small><strong>{{ day.rain_mm }}<small>mm</small></strong></div>{% endfor %}</div>{% else %}<div class="empty-state small"><span>≈</span><h3>{{ t('Rain risk is unknown', 'वर्षा जोखिम अज्ञात') }}</h3><p>{{ report.weather.reason }}</p></div>{% endif %}<small>{{ t('Saved forecast is a snapshot. Recheck before applying urea or irrigating.', 'सहेजा गया मौसम पुराना हो सकता है। यूरिया/सिंचाई से पहले फिर देखें।') }}</small></section>
+    <section class="panel"><h2>{{ t('Prices used', 'उपयोग किए भाव') }}</h2><ul class="compact-notes">{% for id, p in report.prices.items() %}<li>{{ p.name_hi if L == 'hi' else p.name }}: ₹{{ '%.2f'|format(p.price_rs) }} / {{ p.weight_kg|int }} kg{% if not p.available %} — {{ t('not available', 'उपलब्ध नहीं') }}{% endif %}</li>{% endfor %}</ul><a class="text-link" href="{{ url_for('simulator') }}">{{ t('Explore intercropping economics', 'अंतरफसल की आर्थिक तुलना') }} →</a></section>
+  </div>
+  <details class="panel"><summary>{{ t('Assumptions, sources & limitations', 'मान्यताएँ, स्रोत और सीमाएँ') }}</summary><ul>{% for warning in report.warnings %}<li>{{ warning }}</li>{% endfor %}{% if report.soil_report %}<li>{{ report.soil_report.source }}</li>{% endif %}<li>{{ water.source }}</li></ul><a href="{{ url_for('json_report', report_id=report.id) }}">{{ t('Open full JSON report', 'पूरी JSON रिपोर्ट खोलें') }}</a></details>
+  <div class="report-bottom"><small>{{ t('Anyone with this link can read the report; share carefully.', 'लिंक रखने वाला रिपोर्ट पढ़ सकता है; सावधानी से साझा करें।') }}</small><button type="button" class="button secondary" data-copy-link>{{ t('Copy report link', 'रिपोर्ट लिंक कॉपी करें') }}</button><button type="button" class="button secondary" data-print>{{ t('Print', 'प्रिंट') }}</button><span data-copy-status aria-live="polite"></span></div>
+</section>
+{% endblock %}

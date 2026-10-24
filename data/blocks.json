@@ -1,0 +1,101 @@
+{
+  "source": "GeoNames via Open-Meteo geocoding (Roorkee, Bhagwanpur, Laksar, Bahadrabad) and OpenStreetMap Nominatim (Narsan, Khanpur, and belt villages). Block reference points are town locations; village coordinates are approximate village centres.",
+  "focus_blocks": ["Roorkee", "Bhagwanpur", "Laksar"],
+  "blocks": {
+    "Roorkee": {
+      "lat": 29.86632,
+      "lon": 77.89118,
+      "hi": "रुड़की",
+      "priority": true,
+      "default_texture": "sandy-loam",
+      "villages": [
+        {"name": "Dhandera", "hi": "ढंडेरा", "lat": 29.8328, "lon": 77.8964, "texture": "loam"},
+        {"name": "Dhanauri", "hi": "धनौरी", "lat": 29.9369, "lon": 77.9564, "texture": "sandy-loam"},
+        {"name": "Belda", "hi": "बेलड़ा", "lat": 29.8981, "lon": 77.9347, "texture": "sandy-loam"},
+        {"name": "Landhaura", "hi": "लंढौरा", "lat": 29.8056, "lon": 77.9397, "texture": "loam"},
+        {"name": "Padarsatha", "hi": "पदरसाथा", "lat": 29.8615, "lon": 77.8550, "texture": "sandy-loam"},
+        {"name": "Imlikhera", "hi": "इमलीखेड़ा", "lat": 29.9292, "lon": 77.9114, "texture": "sandy-loam"}
+      ]
+    },
+    "Bhagwanpur": {
+      "lat": 29.94141,
+      "lon": 77.81538,
+      "hi": "भगवानपुर",
+      "priority": true,
+      "default_texture": "sandy-loam",
+      "villages": [
+        {"name": "Bhagwanpur", "hi": "भगवानपुर", "lat": 29.9414, "lon": 77.8154, "texture": "sandy-loam"},
+        {"name": "Chudiyala", "hi": "चूड़ियाला", "lat": 29.9036, "lon": 77.7689, "texture": "loam"},
+        {"name": "Sikroda", "hi": "सिकरोढ़ा", "lat": 29.9610, "lon": 77.8350, "texture": "sandy-loam"},
+        {"name": "Dada Jalalpur", "hi": "दादा जलालपुर", "lat": 29.9540, "lon": 77.8610, "texture": "sandy-loam"},
+        {"name": "Kheri Shikohpur", "hi": "खेड़ी शिकोहपुर", "lat": 29.9850, "lon": 77.8480, "texture": "sandy"}
+      ]
+    },
+    "Laksar": {
+      "lat": 29.7587,
+      "lon": 78.04148,
+      "hi": "लक्सर",
+      "priority": true,
+      "default_texture": "clay-loam",
+      "villages": [
+        {"name": "Laksar", "hi": "लक्सर", "lat": 29.7587, "lon": 78.0415, "texture": "clay-loam"},
+        {"name": "Sultanpur", "hi": "सुल्तानपुर", "lat": 29.7667, "lon": 78.1069, "texture": "clay-loam"},
+        {"name": "Raisi", "hi": "रायसी", "lat": 29.6989, "lon": 78.0811, "texture": "loam"},
+        {"name": "Dausni", "hi": "दौसनी", "lat": 29.7720, "lon": 78.0150, "texture": "loam"},
+        {"name": "Bhurpur", "hi": "भूरपुर", "lat": 29.7450, "lon": 78.0300, "texture": "clay-loam"}
+      ]
+    },
+    "Narsan": {
+      "lat": 29.70101,
+      "lon": 77.84818,
+      "hi": "नारसन",
+      "priority": false,
+      "default_texture": "loam",
+      "villages": [
+        {"name": "Gurukul Narsan", "hi": "गुरुकुल नारसन", "lat": 29.7010, "lon": 77.8482, "texture": "loam"},
+        {"name": "Manglaur", "hi": "मंगलौर", "lat": 29.7909, "lon": 77.8784, "texture": "loam"},
+        {"name": "Jhabrera", "hi": "झबरेड़ा", "lat": 29.8098, "lon": 77.7768, "texture": "sandy-loam"},
+        {"name": "Libberheri", "hi": "लिब्बरहेड़ी", "lat": 29.7644, "lon": 77.8628, "texture": "loam"}
+      ]
+    },
+    "Bahadrabad": {
+      "lat": 29.91914,
+      "lon": 78.0444,
+      "hi": "बहादराबाद",
+      "priority": false,
+      "default_texture": "sandy-loam",
+      "villages": [
+        {"name": "Bahadrabad", "hi": "बहादराबाद", "lat": 29.9191, "lon": 78.0444, "texture": "sandy-loam"},
+        {"name": "Pathri", "hi": "पथरी", "lat": 29.8390, "lon": 78.0740, "texture": "sandy-loam"},
+        {"name": "Dhanpura", "hi": "धनपुरा", "lat": 29.8450, "lon": 78.1050, "texture": "loam"},
+        {"name": "Shantarshah", "hi": "शांतरशाह", "lat": 29.9050, "lon": 78.0050, "texture": "sandy-loam"}
+      ]
+    },
+    "Khanpur": {
+      "lat": 29.6895,
+      "lon": 78.0620,
+      "hi": "खानपुर",
+      "priority": false,
+      "default_texture": "loam",
+      "fallback_of": "Laksar",
+      "villages": [
+        {"name": "Khanpur", "hi": "खानपुर", "lat": 29.6895, "lon": 78.0620, "texture": "loam"},
+        {"name": "Goverdhanpur", "hi": "गोवर्धनपुर", "lat": 29.6990, "lon": 78.0390, "texture": "loam"},
+        {"name": "Prahladpur", "hi": "प्रह्लादपुर", "lat": 29.6710, "lon": 78.0510, "texture": "clay-loam"},
+        {"name": "Dallawala", "hi": "दल्लावाला", "lat": 29.6820, "lon": 78.0780, "texture": "loam"}
+      ]
+    }
+  },
+  "bigha_presets": [
+    {"id": "uk", "m2": 632.29, "en": "Uttarakhand local bigha (~632 m²)", "hi": "उत्तराखंड स्थानीय बीघा (~632 m²)"},
+    {"id": "kachha", "m2": 843.1, "en": "Kachha bigha, 5 biswa (~843 m²)", "hi": "कच्चा बीघा (~843 m²)"},
+    {"id": "pucca", "m2": 2529.29, "en": "Pucca bigha (~2,529 m²)", "hi": "पक्का बीघा (~2,529 m²)"}
+  ],
+  "water_source_presets": [
+    {"id": "tubewell_5hp", "flow_lps": 10.0, "turn_hours": 4.0, "en": "5 HP electric/diesel tubewell (~10 L/s)", "hi": "5 HP ट्यूबवेल / पंप (~10 लीटर/से.)"},
+    {"id": "tubewell_7hp", "flow_lps": 14.0, "turn_hours": 4.0, "en": "7.5 HP tubewell (~14 L/s)", "hi": "7.5 HP ट्यूबवेल (~14 लीटर/से.)"},
+    {"id": "tubewell_10hp", "flow_lps": 18.0, "turn_hours": 4.0, "en": "10 HP large tubewell (~18 L/s)", "hi": "10 HP बड़ा ट्यूबवेल (~18 लीटर/से.)"},
+    {"id": "canal_outlet", "flow_lps": 22.0, "turn_hours": 3.5, "en": "Canal outlet / Warabandi turn (~22 L/s)", "hi": "नहर कुलाबा / वाराबंदी बारी (~22 लीटर/से.)"},
+    {"id": "small_pump_3hp", "flow_lps": 6.0, "turn_hours": 5.0, "en": "3 HP small borewell / engine (~6 L/s)", "hi": "3 HP छोटा बोरवेल / इंजन (~6 लीटर/से.)"}
+  ]
+}

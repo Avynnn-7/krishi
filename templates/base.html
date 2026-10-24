@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="{{ locale }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf }}">
+  <title>{% block title %}Jal-Khadd{% endblock %} · {{ t('Better inputs. Thoughtful farming.', 'सही खाद, सही समय।') }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">{{ t('Skip to content', 'मुख्य सामग्री पर जाएँ') }}</a>
+  <div class="institution-bar"><div class="container">{{ t('HARIDWAR–ROORKEE FIELD RESEARCH', 'हरिद्वार–रुड़की क्षेत्र अनुसंधान') }} <span>{{ t('Research prototype · Expert review required', 'शोध प्रोटोटाइप · विशेषज्ञ की जाँच जरूरी') }}</span></div></div>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="{{ url_for('index') }}" aria-label="Jal-Khadd home"><span class="brand-mark">ज</span><span>जल-खाद<small>JAL-KHADD</small></span></a>
+      <nav aria-label="{{ t('Main navigation', 'मुख्य नेविगेशन') }}">
+        <a href="{{ url_for('advisory') }}" {% if request.endpoint == 'advisory' %}aria-current="page"{% endif %}>{{ _('Plan your inputs') }}</a>
+        <a href="{{ url_for('village_soil_hub') }}" {% if request.endpoint == 'village_soil_hub' %}aria-current="page"{% endif %}>{{ t('Village soil data', 'गाँव मिट्टी डेटा') }}</a>
+        <a href="{{ url_for('soil_card') }}" {% if request.endpoint == 'soil_card' %}aria-current="page"{% endif %}>{{ t('Soil card', 'मिट्टी कार्ड') }}</a>
+        <a href="{{ url_for('water_planner') }}" {% if request.endpoint == 'water_planner' %}aria-current="page"{% endif %}>{{ t('Water', 'पानी') }}</a>
+        <a href="{{ url_for('simulator') }}" {% if request.endpoint == 'simulator' %}aria-current="page"{% endif %}>{{ _('Intercrop lab') }}</a>
+        <a href="{{ url_for('bot_demo') }}" {% if request.endpoint == 'bot_demo' %}aria-current="page"{% endif %}>{{ _('Field assistant') }}</a>
+        <a href="{{ url_for('history') }}">{{ _('Saved reports') }}</a>
+      </nav>
+      <div class="language-switch" aria-label="Language"><a href="{{ lang_url('en') }}" lang="en" {% if locale == 'en' %}aria-current="true"{% endif %}>EN</a><a href="{{ lang_url('hi') }}" lang="hi" {% if locale == 'hi' %}aria-current="true"{% endif %}>हिंदी</a></div>
+    </div>
+  </header>
+  <main id="main">{% block content %}{% endblock %}</main>
+  <footer class="site-footer"><div class="container footer-inner"><div><strong>जल-खाद / Jal-Khadd</strong><p>{{ t('A field-first research prototype for more informed decisions.', 'खेत की जरूरतों पर आधारित शोध प्रोटोटाइप।') }}</p></div><div><a href="{{ url_for('about') }}">{{ _('Methods & data') }}</a><p>{{ t('No endorsement or yield guarantee is implied.', 'संस्थागत समर्थन या उपज की गारंटी का दावा नहीं।') }}</p></div></div></footer>
+</body>
+</html>
