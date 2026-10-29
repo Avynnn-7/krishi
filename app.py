@@ -201,6 +201,9 @@ def create_app(test_config: dict | None = None) -> Flask:
     @app.get("/")
     def index():
         return render_template("index.html")
+    @app.get("/dashboard")
+    def dashboard():
+        return render_template("dashboard.html")    
 
     @app.route("/advisory", methods=["GET", "POST"])
     def advisory():
@@ -237,6 +240,27 @@ def create_app(test_config: dict | None = None) -> Flask:
             products=products,
             methods=water["methods"],
         ), 422 if error else 200
+
+    @app.after_request
+    def headers(response):
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        csp = (
+            "default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:; "
+            "font-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+        )
+        if request.path == "/dashboard":
+            # The dashboard sets bar widths/heights with inline style attributes and loads Google Fonts.
+            csp = (
+                "default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                "script-src 'self'; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; "
+                "connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+            )
+        response.headers["Content-Security-Policy"] = csp
+        if not request.path.startswith("/static/"):
+            response.headers["Cache-Control"] = "no-store"
+        return response
 
     @app.get("/soil-card")
     def soil_card():
