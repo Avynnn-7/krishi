@@ -142,7 +142,7 @@ MICRO_ACTION = {
 
 @lru_cache(maxsize=4)
 def load_ratings(data_dir: Path) -> dict:
-    return json.loads((data_dir / "soil_ratings.json").read_text())
+    return json.loads((data_dir / "soil_ratings.json").read_text(encoding="utf-8"))
 
 
 def three_level(value: float, low: float, high: float) -> str:

@@ -70,14 +70,14 @@ def test_bad_input_help_and_expiry(client, csrf, app):
             ((datetime.now(timezone.utc) - timedelta(minutes=31)).isoformat(),),
         )
     result = client.post("/api/bot", headers=csrf, json={"text": "1"})
-    assert "स्वागत" in result.json["text"]
+    assert "जल-खाद" in result.json["text"]
 
 
 def test_browser_reload_restores_current_prompt(client, csrf):
     client.post("/api/bot", headers=csrf, json={"text": "hi"})
     client.post("/api/bot", headers=csrf, json={"text": "1"})
     response = client.get("/bot")
-    assert "गाँव का नाम लिखें।".encode() in response.data
+    assert "गाँव का नाम लिखें".encode() in response.data
 
 
 def test_stop_removes_subscription_even_after_session_expiry(client, csrf, app):

@@ -39,7 +39,7 @@ class Profile(StrictModel):
 
 
 def load_profiles(data_dir: Path) -> dict[str, Profile]:
-    raw = json.loads((data_dir / "stcr_coefficients.json").read_text())
+    raw = json.loads((data_dir / "stcr_coefficients.json").read_text(encoding="utf-8"))
     profiles = [Profile.model_validate(item) for item in raw["profiles"]]
     if len({p.id for p in profiles}) != len(profiles):
         raise ValueError("Duplicate STCR profile IDs.")

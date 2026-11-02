@@ -6,3 +6,6 @@ __pycache__/
 .ruff_cache/
 *.pyc
 .DS_Store
+cloudflared-windows-amd64.exe
+tempCodeRunnerFile.py
+_fix_tests.py

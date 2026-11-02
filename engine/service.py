@@ -22,7 +22,9 @@ SEASONS = {
 
 @lru_cache(maxsize=4)
 def load_catalog_cached(data_dir: Path) -> tuple[tuple[Product, ...], str]:
-    catalog = json.loads((data_dir / "fertilizer_catalog.json").read_text())
+    catalog = json.loads(
+    (data_dir / "fertilizer_catalog.json").read_text(encoding="utf-8")
+)
     products = tuple(Product.model_validate(p) for p in catalog["products"])
     if len({p.id for p in products}) != len(products):
         raise ValueError("Duplicate fertilizer product IDs.")
@@ -36,12 +38,12 @@ def load_catalog(data_dir: Path) -> tuple[list[Product], str]:
 
 @lru_cache(maxsize=4)
 def load_blocks(data_dir: Path) -> dict:
-    return json.loads((data_dir / "blocks.json").read_text())
+    return json.loads((data_dir / "blocks.json").read_text(encoding="utf-8"))
 
 
 @lru_cache(maxsize=4)
 def load_soil_baselines(data_dir: Path) -> dict:
-    return json.loads((data_dir / "soil_averages.json").read_text())
+    return json.loads((data_dir / "soil_averages.json").read_text(encoding="utf-8"))
 
 
 SOIL_VALUE_KEYS = (

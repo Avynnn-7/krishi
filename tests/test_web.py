@@ -1,3 +1,4 @@
+import sys
 from io import BytesIO
 
 import pytest
@@ -132,7 +133,8 @@ def test_default_startup_creates_persistent_private_secret(monkeypatch, tmp_path
     first, second = create_app(config), create_app(config)
     assert first.config["SECRET_KEY"] == second.config["SECRET_KEY"]
     assert len(first.config["SECRET_KEY"]) == 64
-    assert (tmp_path / "instance/secret.key").stat().st_mode & 0o777 == 0o600
+    if sys.platform != "win32":
+        assert (tmp_path / "instance/secret.key").stat().st_mode & 0o777 == 0o600
 
 
 @pytest.mark.parametrize("crop", ["wheat", "sugarcane", "rice", "maize"])

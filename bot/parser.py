@@ -2,10 +2,19 @@ import re
 import unicodedata
 
 CROPS = {
-    "wheat": {"1", "wheat", "gehun", "gehu", "गेहूं", "गेहूँ", "गेहुं"},
-    "sugarcane": {"2", "sugarcane", "ganna", "गन्ना", "गन्ने", "cane"},
-    "rice": {"3", "rice", "dhan", "धान", "chawal", "paddy"},
-    "maize": {"4", "maize", "makka", "मक्का", "corn", "makki"},
+    "wheat": {
+        "1", "wheat", "gehun", "gehu", "gehoo", "gehoon", "gahu",
+        "गेहूं", "गेहूँ", "गेहुं", "गेहू",
+    },
+    "sugarcane": {
+        "2", "sugarcane", "ganna", "ganne", "गन्ना", "गन्ने", "cane",
+    },
+    "rice": {
+        "3", "rice", "dhan", "dhaan", "धान", "chawal", "chaawal", "paddy",
+    },
+    "maize": {
+        "4", "maize", "makka", "makkai", "makki", "मक्का", "मक्की", "corn",
+    },
 }
 
 
@@ -44,10 +53,28 @@ def parse_soil(text: str) -> tuple[float, float, float]:
 
 
 def parse_yes_no(text: str) -> bool:
+    """Parse yes/no in Hindi, Hinglish, and English.
+
+    Accounts for common voice-transcription romanisations:
+    han, haa, haan, ji, ji haan, nahin, nahi, na, etc.
+    """
     value = normalize(text)
-    if value in {"1", "yes", "haan", "ha", "हाँ", "हां"}:
+    YES = {
+        "1", "yes", "yeah", "yep", "ok", "okay",
+        "ha", "haa", "han", "haan", "hanji", "ji", "ji haan",
+        "jee", "jee haan", "bilkul", "zaroor", "zarur",
+        "हाँ", "हां", "हाँजी", "जी", "जी हाँ",
+        "बिल्कुल", "ज़रूर",
+    }
+    NO = {
+        "2", "no", "nope",
+        "nahi", "nahin", "nai", "na", "mat", "bilkul nahi",
+        "nahin ji", "nahi ji",
+        "नहीं", "नही", "ना", "नहीं जी", "मत",
+    }
+    if value in YES:
         return True
-    if value in {"2", "no", "nahi", "नहीं", "नही"}:
+    if value in NO:
         return False
     raise ValueError("1 (हाँ) या 2 (नहीं) भेजें।")
 
@@ -110,15 +137,79 @@ HINDI_NUMBER_WORDS = {
     "chalis": 40.0,
     "पचास": 50.0,
     "pachas": 50.0,
+    "gyarah": 11.0,
+    "ग्यारह": 11.0,
+    "eleven": 11.0,
+    "twelve": 12.0,
+    "बाहर": 12.0,
+    "terah": 13.0,
+    "तेरह": 13.0,
+    "thirteen": 13.0,
+    "chaudah": 14.0,
+    "चौदह": 14.0,
+    "fourteen": 14.0,
+    "fifteen": 15.0,
+    "पन्द्रह": 15.0,
+    "solah": 16.0,
+    "sixteen": 16.0,
+    "satrah": 17.0,
+    "seventeen": 17.0,
+    "athaarah": 18.0,
+    "eighteen": 18.0,
+    "unees": 19.0,
+    "nineteen": 19.0,
+    "twenty": 20.0,
+    "beees": 20.0,
+    "pachis": 25.0,
+    "twenty five": 25.0,
+    "thirties": 30.0,
+    "thirty": 30.0,
+    "chalees": 40.0,
+    "forty": 40.0,
+    "fifty": 50.0,
+    "pachaas": 50.0,
+    "saath": 60.0,
+    "sixty": 60.0,
+    "साठ": 60.0,
+    "sattar": 70.0,
+    "seventy": 70.0,
+    "सत्तर": 70.0,
+    "assi": 80.0,
+    "eighty": 80.0,
+    "अस्सी": 80.0,
+    "nabbe": 90.0,
+    "ninety": 90.0,
+    "नब्बे": 90.0,
+    "sau": 100.0,
+    "hundred": 100.0,
+    "सौ": 100.0,
 }
 
 BLOCK_SYNONYMS = {
-    "Roorkee": ("roorkee", "rurki", "रुड़की", "रूरकी", "रुडकी"),
-    "Bhagwanpur": ("bhagwanpur", "भगवानपुर"),
-    "Laksar": ("laksar", "laxar", "लक्सर"),
-    "Narsan": ("narsan", "gurukul narsan", "नारसन", "नरसन", "गुरुकुल नारसन"),
-    "Bahadrabad": ("bahadrabad", "bahadarabad", "बहादराबाद"),
-    "Khanpur": ("khanpur", "खानपुर"),
+    "Roorkee": (
+        "roorkee", "rurki", "rurkey", "roorkee", "roorki", "rorki",
+        "रुड़की", "रूरकी", "रुडकी", "रूड़की",
+    ),
+    "Bhagwanpur": (
+        "bhagwanpur", "bhagvanpur", "bhagwan pur",
+        "भगवानपुर", "भगवान पुर",
+    ),
+    "Laksar": (
+        "laksar", "laxar", "lakser",
+        "लक्सर", "लकसर",
+    ),
+    "Narsan": (
+        "narsan", "narsen", "gurukul narsan", "gurukul",
+        "नारसन", "नरसन", "गुरुकुल नारसन", "गुरुकुल",
+    ),
+    "Bahadrabad": (
+        "bahadrabad", "bahadarabad", "bahadarabaad", "bahadraabaad",
+        "बहादराबाद",
+    ),
+    "Khanpur": (
+        "khanpur", "khanpoor", "khan pur",
+        "खानपुर", "खान पुर",
+    ),
 }
 
 

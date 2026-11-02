@@ -7,7 +7,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from bot.formatter import format_result_hindi
+from bot.formatter import format_result_hindi, format_result_hindi_voice
 from bot.parser import (
     decipher_voice_utterance,
     normalize,
@@ -29,46 +29,31 @@ from storage import get_report, save_report
 
 PROMPTS = {
     "BLOCK": (
-        "🌾 *जल-खाद* में स्वागत है! (शोध प्रोटोटाइप — खेत में उपयोग से पहले KVK/विशेषज्ञ से जाँच कराएँ)\n\n"
-        "अपना *ब्लॉक* चुनें (नंबर भेजें या बोलें 🎤):\n"
-        "1️⃣ रुड़की (Roorkee)\n"
-        "2️⃣ भगवानपुर (Bhagwanpur)\n"
-        "3️⃣ लक्सर (Laksar)\n"
-        "4️⃣ नारसन (Narsan)\n"
-        "5️⃣ बहादराबाद (Bahadrabad)\n"
-        "6️⃣ खानपुर (Khanpur)\n\n"
-        '💡 _आप सीधे पूरा वाक्य भी बोल या लिख सकते हैं, जैसे: "रुड़की ढंडेरा 5 बीघा गेहूं बजट 2500"_'
+        "🌾 *जल-खाद* (शोध प्रोटोटाइप — KVK से जाँच कराएँ)\n"
+        "*ब्लॉक* चुनें 🎤:\n"
+        "1 रुड़की  2 भगवानपुर  3 लक्सर\n"
+        "4 नारसन  5 बहादराबाद  6 खानपुर\n"
+        '\U0001F4A1 _सीधे बोलें: "रुड़की ढंडेरा 5 बीघा गेहूं 2500"_'
     ),
-    "VILLAGE": "गाँव का नाम लिखें। (या नीचे दिए गए नंबर 1–6 में से चुनें; GPS, मौसम व मिट्टी अपने-आप जुड़ेंगे)",
-    "CROP": "फसल चुनें:\n1️⃣ गेहूं (Wheat)\n2️⃣ गन्ना (Sugarcane)\n3️⃣ धान (Rice)\n4️⃣ मक्का (Maize)",
-    "AREA": (
-        "खेत का क्षेत्र भेजें (जैसे *5 bigha*, *2 बीघा*, *1 acre*, या *0.5 ha*):\n"
-        "• उत्तराखंड बीघा (~632 m²) अपने-आप गिना जाएगा।"
-    ),
+    "VILLAGE": "गाँव का नाम लिखें या नंबर चुनें (GPS/मिट्टी स्वतः)",
+    "CROP": "फसल: 1 गेहूं  2 गन्ना  3 धान  4 मक्का",
+    "AREA": "खेत: *5 bigha* / *1 acre* / *0.5 ha* (UK बीघा ~632m²)",
     "SOWING": "बुवाई की तारीख YYYY-MM-DD में भेजें, जैसे 2026-11-01।",
     "TEXTURE": "मिट्टी: 1 रेतीली, 2 बलुई दोमट, 3 दोमट, 4 चिकनी दोमट, 5 चिकनी।",
     "IRRIGATION": "अगले पानी की तारीख/समय IST में YYYY-MM-DD HH:MM भेजें, या 'नहीं'। यह आधिकारिक नहर समय नहीं है।",
     "CYCLE": "पानी कितने दिन बाद दोबारा आता है? 1–30 के बीच अंक भेजें।",
     "COORDINATES": "मौसम के लिए latitude,longitude भेजें (जैसे 29.85,77.88), या 'नहीं'।",
-    "BUDGET": (
-        "पूरे खेत का खाद *बजट (₹)* लिखें या बोलें (जैसे *2000* या *दो हज़ार*):\n"
-        "• मौसम, मिट्टी का प्रकार और सिंचाई अपने-आप जोड़ लिए गए हैं।"
-    ),
+    "BUDGET": "खाद *बजट ₹* लिखें (जैसे *2000* या *दो हज़ार*)",
     "SOIL": (
-        "क्या आपके पास अपना *मृदा स्वास्थ्य कार्ड (SHC)* है?\n"
-        "1️⃣ हाँ — मेरे पास कार्ड के N, P, K नंबर हैं\n"
-        "2️⃣ नहीं — सामान्य/संदर्भ सलाह बनाएँ\n"
-        "3️⃣ गाँव/ब्लॉक की सरकारी मिट्टी जाँच (KVK/CAO) से स्वतः भरें ✨"
+        "मिट्टी कार्ड (SHC)?\n"
+        "1 हाँ (N,P,K दें)  2 नहीं  3 सरकारी जाँच ✨"
     ),
     "SOIL_BASIS": (
         "कार्ड की इकाई kg/ha होनी चाहिए। 1 N,P,K (तत्व), 2 N,P2O5,K2O (ऑक्साइड)। "
         "(या सीधे N,P,K भेजें जैसे 180,45,220)। ppm वाले कार्ड के लिए विशेषज्ञ से रूपांतरण कराएँ।"
     ),
     "SOIL_DATA": "तीन मान N,P,K (चुनी गई इकाई में) भेजें, जैसे 180,45,220।",
-    "RESULT": (
-        "1 PDF | 2 मौसम अलर्ट (सहमति: फोन/निर्देशांक सहेजें) | 3 फिर शुरू | 4 वैज्ञानिक आधार\n"
-        "STOP अलर्ट बंद | DELETE बॉट डेटा मिटाएँ"
-    ),
+    "RESULT": "1 PDF | 2 अलर्ट | 3 शुरू | 4 विज्ञान | STOP बंद | DELETE मिटाएँ",
 }
 
 NEXT_REQUIRED_STEP = ("BLOCK", "VILLAGE", "CROP", "AREA", "BUDGET", "SOIL")
@@ -526,4 +511,14 @@ def finish(
     report = save_report(db, build_advisory(inputs, data_dir, weather_enabled))
     state["step"], state["report_id"] = "RESULT", report["id"]
     state.setdefault("report_ids", []).append(report["id"])
-    return {"text": format_result_hindi(report, base_url), "report_id": report["id"]}
+    reply = {"text": format_result_hindi(report, base_url), "report_id": report["id"]}
+    # Attach voice narration if TTS is available
+    try:
+        from bot.tts import synthesize_hindi
+        narration_text = format_result_hindi_voice(report)
+        audio = synthesize_hindi(narration_text)
+        if audio:
+            reply["audio"] = audio
+    except Exception:
+        pass  # TTS is optional; text reply is always sent
+    return reply

@@ -1,9 +1,11 @@
 import hashlib
 import hmac
 import json
+import logging
 import re
 from datetime import datetime, timezone
 
+import requests
 from flask import Blueprint, abort, current_app, request
 from twilio.request_validator import RequestValidator
 from twilio.twiml.messaging_response import MessagingResponse
@@ -13,6 +15,66 @@ from bot.state_machine import handle_message
 from storage import connect
 
 webhook_bp = Blueprint("webhook", __name__)
+logger = logging.getLogger(__name__)
+
+
+def _download_whatsapp_media(config: dict, media_id: str) -> bytes | None:
+    """Download media bytes from WhatsApp Cloud API by media ID."""
+    token = config.get("META_ACCESS_TOKEN")
+    version = config.get("META_GRAPH_VERSION", "v23.0")
+    if not token:
+        return None
+    try:
+        # Step 1: get the download URL
+        meta = requests.get(
+            f"https://graph.facebook.com/{version}/{media_id}",
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=(3, 10),
+        )
+        meta.raise_for_status()
+        url = meta.json().get("url")
+        if not url:
+            return None
+        # Step 2: download the actual bytes
+        resp = requests.get(
+            url,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=(5, 30),
+        )
+        resp.raise_for_status()
+        return resp.content
+    except Exception:
+        logger.exception("Failed to download WhatsApp media %s", media_id)
+        return None
+
+
+def _transcribe_voice(config: dict, message: dict) -> str | None:
+    """Attempt to transcribe a WhatsApp voice note to text."""
+    audio_info = message.get("audio") or message.get("voice")
+    if not audio_info or not audio_info.get("id"):
+        return None
+    try:
+        from bot.transcribe import transcribe_audio, is_available
+        if not is_available():
+            return None
+    except ImportError:
+        return None
+
+    audio_bytes = _download_whatsapp_media(config, audio_info["id"])
+    if not audio_bytes:
+        return None
+    try:
+        result = transcribe_audio(audio_bytes, language="hi")
+        text = result.get("text", "").strip()
+        if text:
+            logger.info(
+                "Transcribed voice note: '%s' (confidence=%.3f)",
+                text[:80], result.get("confidence", 0),
+            )
+        return text or None
+    except Exception:
+        logger.exception("Voice transcription failed")
+        return None
 
 
 def process_message(message_id: str, phone: str, text: str) -> dict:
@@ -41,11 +103,13 @@ def process_message(message_id: str, phone: str, text: str) -> dict:
             ),
             real_phone=phone,
         )
+        # Don't persist binary audio in the inbox cache
+        reply_for_cache = {k: v for k, v in reply.items() if k != "audio"}
         db.execute(
             "INSERT INTO inbox (message_id, reply, created_at) VALUES (?, ?, ?)",
             (
                 message_id,
-                json.dumps(reply, ensure_ascii=False),
+                json.dumps(reply_for_cache, ensure_ascii=False),
                 datetime.now(timezone.utc).isoformat(),
             ),
         )
@@ -95,10 +159,23 @@ def meta_webhook():
             ):
                 abort(400, "Invalid inbound message.")
             phone, message_id = message["from"], f"meta:{message['id']}"
-            text = message.get("text", {}).get("body") if message.get("type") == "text" else None
-            if not isinstance(text, str):
+
+            # ── Extract text from message ──
+            msg_type = message.get("type")
+            text = None
+            if msg_type == "text":
+                text = message.get("text", {}).get("body")
+            elif msg_type in ("audio", "voice"):
+                # Voice note → transcribe to text
+                text = _transcribe_voice(config, message)
+                if text:
+                    # Echo the transcription so the farmer knows what was heard
+                    send_reply(config, phone, {"text": f"🎤 सुना: _{text}_"})
+
+            if not isinstance(text, str) or not text.strip():
                 send_reply(
-                    config, phone, {"text": "अभी केवल लिखित संदेश स्वीकार हैं। कृपया अंक या पाठ भेजें।"}
+                    config, phone,
+                    {"text": "कृपया लिखकर या 🎤 बोलकर अपना जवाब भेजें।"},
                 )
                 continue
             if len(text) > 2000:

@@ -12,8 +12,8 @@ ACRE_M2 = 4046.86
 
 @lru_cache(maxsize=4)
 def load_water_data(data_dir: Path) -> tuple[dict, dict]:
-    water = json.loads((data_dir / "crop_water.json").read_text())
-    climate = json.loads((data_dir / "climate_normals.json").read_text())
+    water = json.loads((data_dir / "crop_water.json").read_text(encoding="utf-8"))
+    climate = json.loads((data_dir / "climate_normals.json").read_text(encoding="utf-8"))
     return water, climate
 
 
