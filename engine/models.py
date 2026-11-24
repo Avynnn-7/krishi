@@ -27,6 +27,8 @@ class Crop(StrEnum):
     SUGARCANE = "sugarcane"
     RICE = "rice"
     MAIZE = "maize"
+    MUSTARD = "mustard"  # added: ICAR STCR equation available via jal_khadd
+    BARLEY = "barley"   # added: ICAR STCR equation available via jal_khadd
 
 
 class StrictModel(BaseModel):

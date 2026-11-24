@@ -9,3 +9,4 @@ __pycache__/
 cloudflared-windows-amd64.exe
 tempCodeRunnerFile.py
 _fix_tests.py
+.venv_linux/

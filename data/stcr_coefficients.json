@@ -1,5 +1,70 @@
 {
-  "status": "pending",
-  "note": "No locally validated coefficients supplied. Do not invent coefficients or infer them from district nutrient categories.",
-  "profiles": []
+  "status": "active",
+  "note": "Verified ICAR AICRP-STCR equations from 'Four Decades of STCR Research - Crop Wise Recommendations'. Each equation's coefficients are transcribed from the compendium and checked against its own ready-reckoner table. cf_percent is set to 100 so that nr_per_quintal IS the final 'a' coefficient and cs_percent/cf_percent IS the final 'b' coefficient (the soil-test deduction factor).",
+  "profiles": [
+    {
+      "id": "wheat_up2382_pantnagar",
+      "crop": "wheat",
+      "region": "U.S. Nagar, Haridwar, Nainital and parts of Western U.P.",
+      "source": "ICAR AICRP-STCR Compendium, Uttarakhand Wheat, GBPUAT Pantnagar, variety UP-2382 (with FYM/IPNS form). Rabi, irrigated, Mollisols and Inceptisols.",
+      "verified_by": "Jal-Khadd engine: reckoner (40 q/ha, 10 t/ha FYM) P and K exact, N within 0.7 kg (printed b_N=0.67 is rounded).",
+      "soil_basis": "elemental",
+      "min_yield": 40,
+      "max_yield": 45,
+      "coefficients": {
+        "N":    {"nr_per_quintal": 6.28, "cs_percent": 67.0, "cf_percent": 100},
+        "P2O5": {"nr_per_quintal": 0.94, "cs_percent": 28.0, "cf_percent": 100},
+        "K2O":  {"nr_per_quintal": 1.36, "cs_percent": 16.0, "cf_percent": 100}
+      },
+      "caution": "Variety UP-2382 is old and equations are variety-specific. Source does not confirm whether soil P/K and doses are P vs P2O5, K vs K2O. Soil-test calibration: alk. KMnO4-N 150-240, Olsen-P 20-60, NH4OAc-K 150-200 kg/ha."
+    },
+    {
+      "id": "maize_pragati_pantnagar",
+      "crop": "maize",
+      "region": "U.S. Nagar, Haridwar, Nainital and parts of Western U.P.",
+      "source": "ICAR AICRP-STCR Compendium, Uttarakhand Maize, GBPUAT Pantnagar, variety Pragati (with FYM/IPNS form). Kharif.",
+      "verified_by": "Jal-Khadd engine: reckoner (35 q/ha, 10 t/ha FYM) P and K exact, N values match as a set.",
+      "soil_basis": "elemental",
+      "min_yield": 30,
+      "max_yield": 40,
+      "coefficients": {
+        "N":    {"nr_per_quintal": 12.56, "cs_percent": 103.0, "cf_percent": 100},
+        "P2O5": {"nr_per_quintal": 4.65, "cs_percent": 360.0, "cf_percent": 100},
+        "K2O":  {"nr_per_quintal": 5.94, "cs_percent": 59.0, "cf_percent": 100}
+      },
+      "caution": "Variety Pragati only. Source reckoner's N column is shifted one row relative to the soil-test column; values themselves match the equation. Soil calibration: N 200-260, P 10-40, K 180-240 kg/ha."
+    },
+    {
+      "id": "mustard_pysi_pantnagar",
+      "crop": "mustard",
+      "region": "U.S. Nagar, Haridwar, Nainital and parts of Western U.P.",
+      "source": "ICAR AICRP-STCR Compendium, Uttarakhand Mustard, GBPUAT Pantnagar, variety PYS-I (with FYM/IPNS form). Rabi.",
+      "verified_by": "Jal-Khadd engine: reckoner (15 q/ha, 10 t/ha FYM) N, P, K exact.",
+      "soil_basis": "elemental",
+      "min_yield": 15,
+      "max_yield": 20,
+      "coefficients": {
+        "N":    {"nr_per_quintal": 15.63, "cs_percent": 104.0, "cf_percent": 100},
+        "P2O5": {"nr_per_quintal": 2.40,  "cs_percent": 103.0, "cf_percent": 100},
+        "K2O":  {"nr_per_quintal": 3.88,  "cs_percent": 16.0, "cf_percent": 100}
+      },
+      "caution": "Source prints K soil term as 'SP' (typo for SK). Variety PYS-I only; Kranti equation is garbled and not used. Soil calibration: N 198-325, P 15-35, K 168-320 kg/ha."
+    },
+    {
+      "id": "rice_hyv_iari_delhi",
+      "crop": "rice",
+      "region": "Delhi and adjoining UP (Saharanpur, Muzaffarnagar, Meerut); Haryana (Karnal, Panipat). Haridwar NOT named — by adjacency only.",
+      "source": "ICAR AICRP-STCR Compendium, IARI New Delhi, HYV without FYM. Typic Haplustept, alluvial. Kharif, irrigated.",
+      "verified_by": "Jal-Khadd engine: reckoner (50 and 60 q/ha) reproduced to within its 5-kg rounding.",
+      "soil_basis": "elemental",
+      "min_yield": 50,
+      "max_yield": 60,
+      "coefficients": {
+        "N":    {"nr_per_quintal": 4.93, "cs_percent": 47.0, "cf_percent": 100},
+        "P2O5": {"nr_per_quintal": 4.48, "cs_percent": 782.0, "cf_percent": 100},
+        "K2O":  {"nr_per_quintal": 2.31, "cs_percent": 21.0, "cf_percent": 100}
+      },
+      "caution": "Applicability to Haridwar is by adjacency only: confirm with KVK Dhanauri. The source reckoner applies a maintenance minimum (10-15 kg P2O5) where the equation gives ~0; that floor is not modelled. No manure term. Soil calibration: N 100-375, P 10-38, K 100-375 kg/ha."
+    }
+  ]
 }

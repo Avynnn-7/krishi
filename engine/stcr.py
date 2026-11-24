@@ -6,17 +6,20 @@ from pydantic import Field, model_validator
 from engine.models import NUTRIENTS, AdvisoryInput, Crop, StrictModel, valid_nutrients
 
 # Reference doses are not calibrated STCR equations or individual field prescriptions.
+# Used ONLY as fallback when jal_khadd cannot run (no soil data, or unsupported crop).
 REFERENCE_DOSES = {
     "wheat": {"N": 150.0, "P2O5": 60.0, "K2O": 40.0},
     "sugarcane": {"N": 150.0, "P2O5": 60.0, "K2O": 60.0},
     "rice": {"N": 120.0, "P2O5": 60.0, "K2O": 40.0},
     "maize": {"N": 120.0, "P2O5": 60.0, "K2O": 40.0},
+    "mustard": {"N": 80.0, "P2O5": 40.0, "K2O": 40.0},   # general IGP reference
+    "barley": {"N": 60.0, "P2O5": 30.0, "K2O": 20.0},    # general IGP reference
 }
 
 
 class Coefficient(StrictModel):
-    nr_per_quintal: float = Field(gt=0, le=100)
-    cs_percent: float = Field(ge=0, le=100)
+    nr_per_quintal: float = Field(gt=0, le=10000)   # ICAR equations can exceed 100 (e.g. maize N=12.56 × q/ha)
+    cs_percent: float = Field(ge=0, le=10000)        # soil-test deduction: some ICAR equations exceed 100 (e.g. rice P2O5=782)
     cf_percent: float = Field(gt=0, le=100)
 
 
@@ -39,8 +42,9 @@ class Profile(StrictModel):
 
 
 def load_profiles(data_dir: Path) -> dict[str, Profile]:
+    _KNOWN = {"id", "crop", "region", "source", "verified_by", "soil_basis", "min_yield", "max_yield", "coefficients"}
     raw = json.loads((data_dir / "stcr_coefficients.json").read_text(encoding="utf-8"))
-    profiles = [Profile.model_validate(item) for item in raw["profiles"]]
+    profiles = [Profile.model_validate({k: v for k, v in item.items() if k in _KNOWN}) for item in raw["profiles"]]
     if len({p.id for p in profiles}) != len(profiles):
         raise ValueError("Duplicate STCR profile IDs.")
     return {p.id: p for p in profiles}
@@ -69,6 +73,20 @@ def calculate_stcr(
 def nutrient_requirement(
     inputs: AdvisoryInput, profiles: dict[str, Profile], data_dir: Path | None = None
 ) -> tuple[dict[str, float], str, list[str], dict]:
+    # ------------------------------------------------------------------ #
+    #  PRIMARY ENGINE: jal_khadd (ICAR AICRP-STCR verified equations)     #
+    #  Used whenever the crop is in the jal_khadd registry AND soil data  #
+    #  is available. This is the rigorously verified implementation.       #
+    # ------------------------------------------------------------------ #
+    from engine.jalkhadd_bridge import is_supported, jalkhadd_nutrient_requirement
+
+    if inputs.soil is not None and not inputs.stcr_profile and is_supported(str(inputs.crop)):
+        return jalkhadd_nutrient_requirement(inputs)
+
+    # ------------------------------------------------------------------ #
+    #  FALLBACK PATH: runs when jal_khadd has no equation for this crop   #
+    #  (e.g. sugarcane) or when no soil test data is available.           #
+    # ------------------------------------------------------------------ #
     from engine.soil_card import interpret_soil, load_ratings
 
     warnings = ["Research prototype: have a qualified agronomist review before field use."]
