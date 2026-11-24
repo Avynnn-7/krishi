@@ -3,47 +3,48 @@
 ## Goal and constraints
 Integrate the `jal_khadd` ML engine (`jalkhadd/` package) as the **primary STCR engine** inside the `krishi` Flask web app. Bundle everything into a single folder (`krishi/`) and push to `https://github.com/Avynnn-7/krishi`.
 
-- jal_khadd becomes the default for all crops it supports (wheat, rice, maize, mustard, barley).
+- jal_khadd is the default for all crops it supports (wheat, rice, maize, mustard, barley).
 - Sugarcane falls back to krishi's existing reference-dose path (jal_khadd explicitly refuses to fake a sugarcane equation for Uttarakhand).
 - krishi's existing UI, WhatsApp bot, irrigation planner, PDF export, and optimizer are **unchanged**.
-- `.env` and secrets are excluded from git (already in `.gitignore`).
+- `.env` and secrets excluded from git (already in `.gitignore`).
 
-## Completed and verified
+## Completed and verified ✅
 
-_(updated as work progresses)_
-
-- [ ] HANDOFF.md written and readable at `krishi/HANDOFF.md`
+| Step | File(s) | Verification |
+|---|---|---|
+| Copy jalkhadd package | `engine/jalkhadd/*.py` | `import` chain clean |
+| Fix jalkhadd internal imports | `planner.py, solver.py, farmio.py` | Changed `jalkhadd.` → `engine.jalkhadd.` |
+| Fix catalog.py indentation bug | `engine/jalkhadd/catalog.py` | Python syntax check |
+| Write bridge adapter | `engine/jalkhadd_bridge.py` | 7 manual tests pass |
+| Patch `nutrient_requirement()` | `engine/stcr.py` | jal_khadd fires for wheat/rice/maize/mustard/barley+soil; fallback for sugarcane |
+| Fix `load_profiles()` | `engine/stcr.py` | Strips extra JSON fields; Pydantic validates cleanly |
+| Relax `Coefficient` bounds | `engine/stcr.py` | Accepts real ICAR values (cs_percent=782 for rice P2O5) |
+| Extend `Crop` enum | `engine/models.py` | Added mustard, barley |
+| Add Narsan data | `data/farms_shc_narsan.csv`, `data/products_sample.csv` | Files present |
+| Run existing test suite | `tests/` | **68/68 passed** |
+| Commit + push to GitHub | `https://github.com/Avynnn-7/krishi` | Commit `d3c3258` on `main` |
 
 ## In progress
-
-**Step 1 — Copy jalkhadd package** into `krishi/engine/jalkhadd/`
+Nothing — task is **complete**.
 
 ## Decisions
 
 | Decision | Reason |
 |---|---|
-| jal_khadd as default (Option A) | krishi's reference doses are explicitly labelled "not calibrated STCR" in source; jal_khadd equations are ICAR-verified per compendium |
-| Copy jalkhadd as sub-package of engine/ | Avoids sys.path hacks; keeps everything self-contained in one repo |
-| Keep krishi's PuLP optimizer for bag-buying | krishi's optimizer also maximises coverage, well-tested; avoids breaking existing report format |
-| Convert doses N/P/K → N/P2O5/K2O at bridge boundary | jal_khadd works in elemental; krishi's report format expects oxide |
-| Bridge inserted at top of `nutrient_requirement()` | Minimal invasive change; maintains fallback for unsupported crops |
+| jal_khadd as default (Option A) | krishi's reference doses explicitly labelled "not calibrated STCR" in source |
+| Bridge skips when `stcr_profile` is set | Named profile = explicit override; keeps backward compat |
+| Copy jalkhadd as `engine/jalkhadd/` | Self-contained in one repo; no sys.path hacks |
+| Keep krishi's PuLP optimizer for bag-buying | Avoids breaking existing report format; both are correct |
+| Convert doses N/P/K → N/P2O5/K2O at bridge boundary | jal_khadd works in elemental; krishi's report expects oxide |
+| Relaxed Coefficient bounds | ICAR equations have soil-deduction factors well above 100% |
 
 ## Next action
+**Task complete.** No further action required.
 
-A new agent should:
-1. Read this file.
-2. Check which steps in "Completed and verified" are ticked.
-3. Resume from "In progress" — the exact step and file are listed there.
-4. After completing each step, tick it and update "In progress".
+If resuming for future work (e.g., deploying, adding new crops):
+1. Activate venv: `source .venv_linux/bin/activate` (Linux) or use Windows `.venv`
+2. Run tests: `python -m pytest tests/ -q`
+3. Push changes: `git add -A && git commit -m "..." && git push origin main`
 
 ## Remaining work and blockers
-
-1. Copy `jal_khadd/jalkhadd/*.py` → `krishi/engine/jalkhadd/`
-2. Write `krishi/engine/jalkhadd_bridge.py`
-3. Patch `krishi/engine/stcr.py` — insert jalkhadd bridge call at top of `nutrient_requirement()`
-4. Copy Narsan data files → `krishi/data/`
-5. Run `python -m pytest tests/ -x -q` inside krishi to verify no regressions
-6. Set git remote to `https://github.com/Avynnn-7/krishi` and push
-7. Update this file with ✓ for each completed step
-
-**Blockers**: GitHub credentials (SSH key or token) must be configured for push to succeed. If push fails, the agent should report the error and ask the user for credentials.
+None — all deliverables done.
